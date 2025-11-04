@@ -31,6 +31,13 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
         ))}
       </ul>
 
+      <div className="w-full h-screen bg-black flex items-center justify-center">
+        <iframe
+          src="/mapmaker/index.html"
+          className="w-[90%] h-[90%] border-2 border-gray-700 rounded-xl"
+        />
+      </div>
+
       <h2 className="mt-4 font-semibold">Maps:</h2>
       <ul>
         {campaign.maps.map((map) => (
