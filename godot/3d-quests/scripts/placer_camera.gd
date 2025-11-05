@@ -58,7 +58,8 @@ func _update_movement(delta):
 	# Computes desired direction from key states
 	var lx := Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
 	var lz := Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forward")
-	_direction = Vector3(lx, 0, lz)
+	var ly := Input.get_action_strength("move_up") - Input.get_action_strength("move_down")
+	_direction = Vector3(lx, ly, lz)
 	
 	
 	# Computes the change in velocity due to desired direction and "drag"
