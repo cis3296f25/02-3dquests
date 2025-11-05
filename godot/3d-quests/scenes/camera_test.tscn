@@ -41,3 +41,5 @@ environment = SubResource("Environment_br5go")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.61939543, 0.7850792, 0, -0.7850792, 0.61939543, 0, 0, 0)
 shadow_enabled = true
+
+[node name="Node3D" type="Node3D" parent="."]
