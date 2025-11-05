@@ -1,16 +1,43 @@
-[gd_scene load_steps=4 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=9 format=3 uid="uid://dwcpw05no3g37"]
 
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
 [ext_resource type="Script" uid="uid://ce8ktxqnbf673" path="res://scripts/camera_test.gd" id="1_onuh2"]
+[ext_resource type="PackedScene" uid="uid://brcua0gc1h8om" path="res://scenes/ghost_object.tscn" id="2_6hmdl"]
+[ext_resource type="PackedScene" uid="uid://d4mniij36i4ac" path="res://assets/meshes/sphere.tscn" id="3_3pev5"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_onuh2"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l4yd"]
+albedo_color = Color(0, 1, 0, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_6hmdl"]
+material = SubResource("StandardMaterial3D_4l4yd")
+size = Vector2(150, 150)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_3pev5"]
+
+[sub_resource type="Environment" id="Environment_br5go"]
+background_mode = 1
+background_color = Color(0, 0.8352941, 1, 1)
 
 [node name="CameraTest" type="Node3D"]
 script = ExtResource("1_onuh2")
 
-[node name="Object" type="StaticBody3D" parent="."]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Object"]
-mesh = SubResource("BoxMesh_onuh2")
+[node name="GhostObject" parent="." instance=ExtResource("2_6hmdl")]
+ghost_mesh = ExtResource("3_3pev5")
 
 [node name="PlacerCamera" parent="." instance=ExtResource("1_811nu")]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("PlaneMesh_6hmdl")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("WorldBoundaryShape3D_3pev5")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_br5go")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.61939543, 0.7850792, 0, -0.7850792, 0.61939543, 0, 0, 0)
+shadow_enabled = true

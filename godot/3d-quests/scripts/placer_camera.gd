@@ -23,7 +23,10 @@ var near_place_distance: int = -2
 @onready var raycast: RayCast3D = $RayCast3D
 
 #object to place
-var placer_obj: StaticBody3D
+var placer_obj: Node3D
+
+#parent node
+@onready var parent = get_parent()
 
 func _input(event):
 	# Receives mouse motion
@@ -33,8 +36,10 @@ func _input(event):
 	# Receives mouse button input
 	if event is InputEventMouseButton:
 		match event.button_index:
-			MOUSE_BUTTON_RIGHT: # Only allows rotation if right click down
+			MOUSE_BUTTON_RIGHT: # Only allows camera rotation if right click down
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if event.pressed else Input.MOUSE_MODE_VISIBLE)
+			MOUSE_BUTTON_LEFT:
+				parent.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
 				_update_place_distance()
@@ -47,7 +52,6 @@ func _process(delta):
 	_update_mouselook()
 	_update_movement(delta)
 	get_place_object_pos()
-	$Label.text = str(position) + " " + str(place_area.position)
 
 # Updates camera movement
 func _update_movement(delta):
@@ -116,5 +120,5 @@ func get_mouse_world_pos():
 		return self.project_ray_origin(mp) + self.project_ray_normal(mp) * 50.0
 
 #sets the ghost object to be placed
-func set_to_place(obj: StaticBody3D):
+func set_to_place(obj: Node3D):
 	placer_obj = obj
