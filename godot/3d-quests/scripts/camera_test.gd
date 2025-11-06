@@ -2,11 +2,20 @@ extends Node3D
 
 @onready var camera: Camera3D = $PlacerCamera
 @onready var object: Node3D = $GhostObject
+@onready var ui = $UILayer/Control
+
+var can_place := false
 
 var min_pos: Vector3 = Vector3(-75, 0, -75)
 var max_pos: Vector3 = Vector3(75, 10, 75)
+
 func _ready() -> void:
 	camera.set_to_place(object)
+	ui.place_mode_changed.connect(_on_mode_changed)
+	
+func _on_mode_changed(enabled: bool) -> void:
+	can_place = enabled
+	print("Placement mode is now: ", enabled)
 
 #NOT FINAL SOLUTION
 func _process(delta: float) -> void:

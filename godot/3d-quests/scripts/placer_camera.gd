@@ -39,7 +39,8 @@ func _input(event):
 			MOUSE_BUTTON_RIGHT: # Only allows camera rotation if right click down
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if event.pressed else Input.MOUSE_MODE_VISIBLE)
 			MOUSE_BUTTON_LEFT:
-				parent.place_object()
+				if parent.can_place:
+					parent.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
 				_update_place_distance()
