@@ -88,15 +88,20 @@ script = ExtResource("6_tt3eh")
 [node name="ObjectMenuWindow" type="Window" parent="UILayer/ObjectMenuControl"]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
+size = Vector2i(600, 500)
 visible = false
 popup_window = true
 
 [node name="PanelContainer" type="PanelContainer" parent="UILayer/ObjectMenuControl/ObjectMenuWindow"]
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UILayer/ObjectMenuControl/ObjectMenuWindow/PanelContainer"]
 layout_mode = 2
 
 [node name="GridContainer" type="GridContainer" parent="UILayer/ObjectMenuControl/ObjectMenuWindow/PanelContainer/ScrollContainer"]
 layout_mode = 2
+columns = 3
