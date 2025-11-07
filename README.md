@@ -1,20 +1,31 @@
-# Project Name
-Put here a short paragraph describing your project. 
+# 3D-Quests
+For TTRPG (table-top role-playing game) consumers who need to play online, 
+3D-Quests is a free-to-play 3D VTT (virtual table top) web app, unlike D&D 
+(Dungeons and Dragons) Beyond's Signal 3D VTT or Roll20's 2D VTT. Our product 
+combines affordability, accessibility, and immersion to give the best experience 
+to the largest number of people.
+
 Adding an screenshot or a mockup of your application in action would be nice.  
 
 ![This is a screenshot.](images.png)
 # How to run
-Provide here instructions on how to use your application.   
-- Download the latest binary from the Release section on the right on GitHub.  
-- On the command line uncompress using
+- Have installed node v22.20.02
+- Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
+- On the command line run the following commands:
 ```
-tar -xzf  
+npm install
 ```
-- On the command line run with
 ```
-./hello
+npm install -g pnpm
 ```
-- You will see Hello World! on your terminal. 
+```
+npx prisma generate 
+```
+```
+pnpm dev
+```
+- Click on http://localhost:3000/
+You're now running the website!
 
 # How to contribute
 Follow this project board to know the latest status of the project: [http://...]([http://...])  
