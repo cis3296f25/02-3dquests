@@ -27,6 +27,9 @@ pnpm dev
 - Click on http://localhost:3000/
 You're now running the website!
 
+Contact 82chaudrys@gmail.com for .env file
+Go To http://localhost:3000/mapmaker/index.html to see the game without signing in
+
 # How to contribute
 Follow this project board to know the latest status of the project: [http://...]([http://...])  
 
