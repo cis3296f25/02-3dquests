@@ -1,4 +1,4 @@
 res://scenes/camera_test.tscn
-res://scripts/UI.gd
+res://scenes/object_menu.gd
 res://scripts/camera_test.gd
-res://scripts/placer_camera.gd
+res://scripts/categorize_assets.gd

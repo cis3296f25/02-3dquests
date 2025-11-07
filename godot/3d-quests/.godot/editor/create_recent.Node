@@ -1,7 +1,10 @@
+Button
+Window
+GridContainer
+ScrollContainer
+PanelContainer
+Control
 Label
 CheckButton
-Button
 VBoxContainer
-Control
-PanelContainer
 CanvasLayer
