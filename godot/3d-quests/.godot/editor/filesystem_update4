@@ -1,4 +1,2 @@
-res://scenes/camera_test.tscn
-res://scripts/UI.gd
-res://scripts/camera_test.gd
-res://scripts/placer_camera.gd
+res://test/test_camera_test.gd
+res://test/test_save_and_load.gd

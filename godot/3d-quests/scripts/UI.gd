@@ -1,10 +1,14 @@
 extends Control
 
 signal place_mode_changed(enabled: bool)
+signal save_button_pressed
+signal load_button_pressed
+
 
 @onready var save_button = $PanelContainer/VBoxContainer/SaveButton
 @onready var load_button = $PanelContainer/VBoxContainer/LoadButton
 @onready var place_mode_label = $PanelContainer/VBoxContainer/PlaceModeLabel
+@onready var save_system = $SaveSystem
 
 var placement_mode_enabled := false
 
@@ -15,10 +19,11 @@ func _ready() -> void:
 	update_mode_label()
 
 func _on_save_pressed():
-	print("save")
+	save_button_pressed.emit()
+	
 
 func _on_load_pressed():
-	print("load")
+	load_button_pressed.emit()
 	
 func update_mode_label():
 	var mode_text = "Placement" if placement_mode_enabled else "View"
