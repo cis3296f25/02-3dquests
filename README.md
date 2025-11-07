@@ -13,10 +13,10 @@ Adding an screenshot or a mockup of your application in action would be nice.
 - Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
 - On the command line run the following commands:
 ```
+npm install
+```
+```
 npm install -g pnpm
-```
-```
-npx prisma generate 
 ```
 ```
 npx prisma generate 
