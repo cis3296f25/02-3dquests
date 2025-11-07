@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=11 format=3 uid="uid://dwcpw05no3g37"]
 
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
 [ext_resource type="Script" uid="uid://ce8ktxqnbf673" path="res://scripts/camera_test.gd" id="1_onuh2"]
 [ext_resource type="PackedScene" uid="uid://brcua0gc1h8om" path="res://scenes/ghost_object.tscn" id="2_6hmdl"]
 [ext_resource type="PackedScene" uid="uid://d4mniij36i4ac" path="res://assets/meshes/sphere.tscn" id="3_3pev5"]
 [ext_resource type="Script" uid="uid://de4pl8uthx4hs" path="res://scripts/UI.gd" id="5_br5go"]
+[ext_resource type="Script" uid="uid://cxe7owfrxbs2n" path="res://scripts/save_and_load.gd" id="6_tt3eh"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l4yd"]
 albedo_color = Color(0, 1, 0, 1)
@@ -43,8 +44,6 @@ environment = SubResource("Environment_br5go")
 transform = Transform3D(1, 0, 0, 0, 0.61939543, 0.7850792, 0, -0.7850792, 0.61939543, 0, 0, 0)
 shadow_enabled = true
 
-[node name="Node3D" type="Node3D" parent="."]
-
 [node name="UILayer" type="CanvasLayer" parent="."]
 
 [node name="Control" type="Control" parent="UILayer"]
@@ -72,3 +71,6 @@ text = "Save"
 [node name="LoadButton" type="Button" parent="UILayer/Control/PanelContainer/VBoxContainer"]
 layout_mode = 2
 text = "Load"
+
+[node name="SaveSystem" type="Node" parent="."]
+script = ExtResource("6_tt3eh")
