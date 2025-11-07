@@ -5,9 +5,8 @@ For TTRPG (table-top role-playing game) consumers who need to play online,
 combines affordability, accessibility, and immersion to give the best experience 
 to the largest number of people.
 
-Adding an screenshot or a mockup of your application in action would be nice.  
+(Screenshot will be added later)
 
-![This is a screenshot.](images.png)
 # How to run
 - Have installed node v22.20.02
 - Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
@@ -28,12 +27,7 @@ pnpm dev
 You're now running the website!
 
 # How to contribute
-Follow this project board to know the latest status of the project: [http://...]([http://...])  
+More to be added later... 
 
 ### How to build
-- Use this github repository: ... 
-- Specify what branch to use for a more stable release or for cutting edge development.  
-- Use InteliJ 11
-- Specify additional library to download if needed 
-- What file and target to compile and run. 
-- What is expected to happen when the app start. 
+More to be added later...
