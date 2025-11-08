@@ -39,7 +39,12 @@ func _input(event):
 			MOUSE_BUTTON_RIGHT: # Only allows camera rotation if right click down
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if event.pressed else Input.MOUSE_MODE_VISIBLE)
 			MOUSE_BUTTON_LEFT:
-				if parent.can_place:
+				var obj = get_object_under_cursor()
+				if picked_object:
+					drop_object()
+				elif obj:
+					pick_up_object(obj)
+				elif parent.can_place:
 					parent.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
@@ -52,7 +57,14 @@ func _input(event):
 func _process(delta):
 	_update_mouselook()
 	_update_movement(delta)
-	get_place_object_pos()
+	if picked_object:
+		var new_pos = get_place_object_pos()
+		placer_obj.global_position = new_pos
+		placer_obj.global_rotation = picked_object.global_rotation
+		show_ghost()
+	else:
+		get_place_object_pos()
+	
 
 # Updates camera movement
 func _update_movement(delta):
@@ -114,6 +126,7 @@ func get_place_object_pos():
 		var point = raycast.get_collision_point()
 		point = point.round()
 		placer_obj.position = point
+	return placer_obj.global_transform.origin
 
 # Converts the current mouse position to a point in 3D space
 func get_mouse_world_pos():
@@ -124,3 +137,38 @@ func get_mouse_world_pos():
 #sets the ghost object to be placed
 func set_to_place(obj: Node3D):
 	placer_obj = obj
+	
+var picked_object: Node3D = null
+
+func pick_up_object(obj: Node3D):
+	picked_object = obj
+	placer_obj.global_transform = obj.global_transform
+	placer_obj.visible = true
+	show_ghost()
+	obj.visible = false  # Hide the real object
+
+func drop_object():
+	if picked_object:
+		picked_object.global_transform = placer_obj.global_transform
+		picked_object.visible = true
+		placer_obj.visible = false
+		picked_object = null
+
+func cancel_move():
+	if picked_object:
+		picked_object.visible = true
+		placer_obj.visible = false
+		picked_object = null
+		
+func get_object_under_cursor() -> Node3D:
+	raycast.force_raycast_update()
+	if raycast.is_colliding():
+		var collider = raycast.get_collider()
+		if collider != null and collider != get_parent().get_node("Floor") and collider.is_in_group("Pickable"):
+			return collider
+	return null
+	
+func show_ghost():
+	for child in placer_obj.get_children():
+		if child is MeshInstance3D:
+			child.visible = true

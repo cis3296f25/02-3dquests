@@ -26,6 +26,10 @@ func _process(delta: float) -> void:
 	for child in get_children():
 		if "position" in child and child != $Floor:
 			child.position = child.position.clamp(min_pos, max_pos)
+	if can_place:
+		object.visible = true
+	else:
+		object.visible = false
 
 func _on_mode_changed(enabled: bool) -> void:
 	can_place = enabled
@@ -38,11 +42,14 @@ func place_object():
 	add_child(new_obj)
 	new_obj.global_position = props["position"]
 	new_obj.global_rotation = props["rotation"]
+	new_obj.add_to_group("Pickable")
+	for children in new_obj.get_children():
+		children.add_to_group("Pickable")
 	save_system.store_properties(props["position"],props["rotation"])
 
 # Gets infro from file, adds child
 func _load_object(pos: Vector3, rot: Vector3):
-	var new_obj: StaticBody3D = object.get_properties()["mesh"].instantiate()
+	var new_obj: Node3D = object.get_properties()["mesh"].instantiate()
 	add_child(new_obj)
 	new_obj.global_position = pos
 	new_obj.global_rotation = rot

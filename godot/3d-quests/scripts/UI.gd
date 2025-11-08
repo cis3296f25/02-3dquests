@@ -16,6 +16,9 @@ var placement_mode_enabled := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	save_button.disabled = placement_mode_enabled
+	load_button.disabled = placement_mode_enabled
+	open_menu.disabled = placement_mode_enabled
 	save_button.pressed.connect(_on_save_pressed)
 	load_button.pressed.connect(_on_load_pressed)
 	open_menu.pressed.connect(_on_open_menu_pressed)
@@ -40,4 +43,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("toggle_place"):
 		placement_mode_enabled = !placement_mode_enabled
 		update_mode_label()
+		save_button.disabled = placement_mode_enabled
+		load_button.disabled = placement_mode_enabled
+		open_menu.disabled = placement_mode_enabled
 		place_mode_changed.emit(placement_mode_enabled)
