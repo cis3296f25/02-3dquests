@@ -3,12 +3,14 @@ extends Control
 signal place_mode_changed(enabled: bool)
 signal save_button_pressed
 signal load_button_pressed
+signal open_menu_pressed
 
 
 @onready var save_button = $PanelContainer/VBoxContainer/SaveButton
 @onready var load_button = $PanelContainer/VBoxContainer/LoadButton
+@onready var open_menu = $PanelContainer/VBoxContainer/OpenMenu
 @onready var place_mode_label = $PanelContainer/VBoxContainer/PlaceModeLabel
-@onready var save_system = $SaveSystem
+@onready var save_system = get_parent().get_parent().get_node("SaveSystem")
 
 var placement_mode_enabled := false
 
@@ -16,6 +18,7 @@ var placement_mode_enabled := false
 func _ready() -> void:
 	save_button.pressed.connect(_on_save_pressed)
 	load_button.pressed.connect(_on_load_pressed)
+	open_menu.pressed.connect(_on_open_menu_pressed)
 	update_mode_label()
 
 func _on_save_pressed():
@@ -24,6 +27,9 @@ func _on_save_pressed():
 
 func _on_load_pressed():
 	load_button_pressed.emit()
+	
+func _on_open_menu_pressed():
+	open_menu_pressed.emit()
 	
 func update_mode_label():
 	var mode_text = "Placement" if placement_mode_enabled else "View"

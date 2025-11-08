@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=12 format=3 uid="uid://dwcpw05no3g37"]
 
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
 [ext_resource type="Script" uid="uid://ce8ktxqnbf673" path="res://scripts/camera_test.gd" id="1_onuh2"]
 [ext_resource type="PackedScene" uid="uid://brcua0gc1h8om" path="res://scenes/ghost_object.tscn" id="2_6hmdl"]
 [ext_resource type="PackedScene" uid="uid://d4mniij36i4ac" path="res://assets/meshes/sphere.tscn" id="3_3pev5"]
 [ext_resource type="Script" uid="uid://de4pl8uthx4hs" path="res://scripts/UI.gd" id="5_br5go"]
+[ext_resource type="Script" uid="uid://do0kulb71j5y3" path="res://scripts/open_menu_control.gd" id="6_gtwgr"]
 [ext_resource type="Script" uid="uid://cxe7owfrxbs2n" path="res://scripts/save_and_load.gd" id="6_tt3eh"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l4yd"]
@@ -72,24 +73,36 @@ text = "Save"
 layout_mode = 2
 text = "Load"
 
+[node name="OpenMenu" type="Button" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Assets Menu"
+
 [node name="OpenMenuControl" type="Control" parent="UILayer"]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
+script = ExtResource("6_gtwgr")
 
 [node name="OpenMenuWindow" type="Window" parent="UILayer/OpenMenuControl"]
+disable_3d = true
 oversampling_override = 1.0
+size = Vector2i(700, 500)
 
 [node name="PanelContainer" type="PanelContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow"]
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow/PanelContainer"]
 layout_mode = 2
 
 [node name="GridContainer" type="GridContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow/PanelContainer/ScrollContainer"]
 layout_mode = 2
+columns = 3
 
 [node name="SaveSystem" type="Node" parent="."]
 script = ExtResource("6_tt3eh")

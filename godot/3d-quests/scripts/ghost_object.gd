@@ -12,7 +12,8 @@ func set_mesh(mesh: PackedScene):
 		child.queue_free()
 	#Add new mesh (disable collision, will enable again upon placement)
 	var new_child = mesh.instantiate()
-	new_child.get_node("CollisionShape3D").disabled = true
+	var col = new_child.get_node("CollisionShape3D")
+	if col: col.disabled = true
 	add_child(new_child)
 	ghost_mesh = mesh
 
