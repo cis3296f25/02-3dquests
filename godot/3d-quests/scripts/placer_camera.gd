@@ -152,10 +152,36 @@ func get_mouse_world_pos():
 		var mp  = get_viewport().get_mouse_position()
 		return self.project_ray_origin(mp) + self.project_ray_normal(mp) * 50.0
 
+func add_collision_to_mesh(mesh_instance: MeshInstance3D) -> void:
+	# Only add if it doesn’t already have a collision
+	if mesh_instance.get_node_or_null("CollisionShape3D"):
+		return
+	var static_body = StaticBody3D.new()
+	static_body.name = "StaticBody3D"
+
+	var collision_shape = CollisionShape3D.new()
+	collision_shape.name = "CollisionShape3D"
+
+	# Use a simple BoxShape for now
+	var aabb = mesh_instance.get_aabb()
+	collision_shape.shape = BoxShape3D.new()
+	collision_shape.shape.size = aabb.size
+
+	# Re-parent mesh under static body
+	mesh_instance.parent.remove_child(mesh_instance)
+	static_body.add_child(mesh_instance)
+	static_body.add_child(collision_shape)
+
+	# Add to Pickable group so your raycast detects it
+	static_body.add_to_group("Pickable")
+
+	# Add static body to scene
+	parent.add_child(static_body)
+
 #sets the ghost object to be placed
 func set_to_place(obj: Node3D):
 	placer_obj = obj
-	
+
 var picked_object: Node3D = null
 
 func pick_up_object(obj: Node3D):
