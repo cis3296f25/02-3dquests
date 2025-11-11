@@ -27,6 +27,7 @@ var placer_obj: Node3D
 
 #parent node
 @onready var parent = get_parent()
+@onready var ui = get_parent().get_node("UILayer/MainUIControl")  # adjust path
 
 func _unhandled_input(event):
 	raycast.force_raycast_update()
@@ -37,17 +38,23 @@ func _unhandled_input(event):
 	
 	# Receives mouse button input
 	if event is InputEventMouseButton and event.pressed:
+		var delete_mode = ui.delete_mode_enabled
 		match event.button_index:
 			MOUSE_BUTTON_LEFT:
-				if picked_object:
-					drop_object()
+				if delete_mode:
+					var obj_to_delete = get_object_under_cursor()
+					if obj_to_delete:
+						obj_to_delete.queue_free()
 				else:
-					raycast.force_raycast_update()
-					var obj = get_object_under_cursor()
-					if obj:
-						pick_up_object(obj)
-					elif parent.can_place:
-						parent.place_object()
+					if picked_object:
+						drop_object()
+					else:
+						raycast.force_raycast_update()
+						var obj = get_object_under_cursor()
+						if obj:
+							pick_up_object(obj)
+						elif parent.can_place:
+							parent.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
 				_update_place_distance()
@@ -62,6 +69,16 @@ func _process(delta):
 	if picked_object:
 		var new_pos = get_place_object_pos()
 		picked_object.global_position = new_pos
+	
+		var rotation_speed = 90 # degrees per second
+		if Input.is_action_pressed("rotate_left"):
+			picked_object.rotate_y(deg_to_rad(rotation_speed * delta))
+		if Input.is_action_pressed("rotate_right"):
+			picked_object.rotate_y(deg_to_rad(-rotation_speed * delta))
+		if Input.is_action_pressed("rotate_up"):
+			picked_object.rotate_object_local(Vector3(1,0,0), deg_to_rad(rotation_speed * delta))
+		if Input.is_action_pressed("rotate_down"):
+			picked_object.rotate_object_local(Vector3(1,0,0), deg_to_rad(-rotation_speed * delta))
 	else:
 		get_place_object_pos()
 	
@@ -169,7 +186,7 @@ func get_object_under_cursor() -> Node3D:
 		# walk up until we find the ancestor that is in the Pickable group
 		while collider != null and not collider.is_in_group("Pickable"):
 			# stop if we reach the top-level map parent to avoid climbing too far
-			if collider == parent:
+			if collider == parent or collider == placer_obj:
 				collider = null
 				break
 			collider = collider.get_parent()
