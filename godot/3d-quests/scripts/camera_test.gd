@@ -43,8 +43,14 @@ func place_object():
 	new_obj.global_position = props["position"]
 	new_obj.global_rotation = props["rotation"]
 	new_obj.add_to_group("Pickable")
-	for children in new_obj.get_children():
-		children.add_to_group("Pickable")
+	for c in new_obj.get_children():
+		# enable collisions (if present) and optionally mark children pickable so raycast hits them
+		if c.has_node("CollisionShape3D"):
+			var col = c.get_node("CollisionShape3D")
+			if col:
+				col.disabled = false
+		# Optionally add children to group - but your get_object_under_cursor walks up anyway
+		c.add_to_group("Pickable")
 	save_system.store_properties(props["position"],props["rotation"])
 
 # Gets infro from file, adds child

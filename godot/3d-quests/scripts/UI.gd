@@ -35,7 +35,7 @@ func _on_open_menu_pressed():
 	open_menu_pressed.emit()
 	
 func update_mode_label():
-	var mode_text = "Placement" if placement_mode_enabled else "View"
+	var mode_text = "Placement" if placement_mode_enabled else "Edit"
 	place_mode_label.text = "Mode: %s (Press P to toggle)" % mode_text
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -28,24 +28,26 @@ var placer_obj: Node3D
 #parent node
 @onready var parent = get_parent()
 
-func _input(event):
+func _unhandled_input(event):
+	raycast.force_raycast_update()
+	
 	# Receives mouse motion
 	if event is InputEventMouseMotion:
 		_mouse_position = event.relative
 	
 	# Receives mouse button input
-	if event is InputEventMouseButton:
+	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
-			MOUSE_BUTTON_RIGHT: # Only allows camera rotation if right click down
-				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if event.pressed else Input.MOUSE_MODE_VISIBLE)
 			MOUSE_BUTTON_LEFT:
-				var obj = get_object_under_cursor()
 				if picked_object:
 					drop_object()
-				elif obj:
-					pick_up_object(obj)
-				elif parent.can_place:
-					parent.place_object()
+				else:
+					raycast.force_raycast_update()
+					var obj = get_object_under_cursor()
+					if obj:
+						pick_up_object(obj)
+					elif parent.can_place:
+						parent.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
 				_update_place_distance()
@@ -59,9 +61,7 @@ func _process(delta):
 	_update_movement(delta)
 	if picked_object:
 		var new_pos = get_place_object_pos()
-		placer_obj.global_position = new_pos
-		placer_obj.global_rotation = picked_object.global_rotation
-		show_ghost()
+		picked_object.global_position = new_pos
 	else:
 		get_place_object_pos()
 	
@@ -94,19 +94,20 @@ func _update_movement(delta):
 
 # Updates mouse look 
 func _update_mouselook():
-	# Only rotates mouse if the mouse is captured
-	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		_mouse_position *= sensitivity
 		var yaw = _mouse_position.x
 		var pitch = _mouse_position.y
 		_mouse_position = Vector2(0, 0)
 		
-		# Prevents looking up/down too far
 		pitch = clamp(pitch, -90 - _total_pitch, 90 - _total_pitch)
 		_total_pitch += pitch
 	
 		rotate_y(deg_to_rad(-yaw))
 		rotate_object_local(Vector3(1,0,0), deg_to_rad(-pitch))
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 # Updates how far the place distance is from the camera
 func _update_place_distance():
@@ -142,29 +143,38 @@ var picked_object: Node3D = null
 
 func pick_up_object(obj: Node3D):
 	picked_object = obj
-	placer_obj.global_transform = obj.global_transform
-	placer_obj.visible = true
-	show_ghost()
-	obj.visible = false  # Hide the real object
+	#placer_obj = obj
+	#placer_obj.visible = true
+	#show_ghost()
+	_set_visibility_recursive(picked_object, true)  # Hide the real object
 
 func drop_object():
 	if picked_object:
-		picked_object.global_transform = placer_obj.global_transform
-		picked_object.visible = true
-		placer_obj.visible = false
+		#picked_object.global_transform = placer_obj.global_transform
+		#_set_visibility_recursive(picked_object, true)
+		#placer_obj.visible = false
 		picked_object = null
 
-func cancel_move():
-	if picked_object:
-		picked_object.visible = true
-		placer_obj.visible = false
-		picked_object = null
+func _set_visibility_recursive(node: Node, visible: bool) -> void:
+	if node is MeshInstance3D:
+		node.visible = visible
+	for child in node.get_children():
+		_set_visibility_recursive(child, visible)
+
 		
 func get_object_under_cursor() -> Node3D:
 	raycast.force_raycast_update()
 	if raycast.is_colliding():
 		var collider = raycast.get_collider()
-		if collider != null and collider != get_parent().get_node("Floor") and collider.is_in_group("Pickable"):
+		# walk up until we find the ancestor that is in the Pickable group
+		while collider != null and not collider.is_in_group("Pickable"):
+			# stop if we reach the top-level map parent to avoid climbing too far
+			if collider == parent:
+				collider = null
+				break
+			collider = collider.get_parent()
+		# ignore floor and null
+		if collider != null and collider != get_parent().get_node("Floor"):
 			return collider
 	return null
 	
