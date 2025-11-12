@@ -25,6 +25,7 @@ func _ready():
 
 func _on_button_pressed(scene: PackedScene):
 	object_selected.emit(scene)
+	menu_window.hide()
 
 func _on_menu_closed():
 	menu_window.hide()

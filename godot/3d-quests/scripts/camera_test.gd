@@ -26,6 +26,10 @@ func _process(delta: float) -> void:
 	for child in get_children():
 		if "position" in child and child != $Floor:
 			child.position = child.position.clamp(min_pos, max_pos)
+	if can_place:
+		object.visible = true
+	else:
+		object.visible = false
 
 func _on_mode_changed(enabled: bool) -> void:
 	can_place = enabled
@@ -38,11 +42,50 @@ func place_object():
 	add_child(new_obj)
 	new_obj.global_position = props["position"]
 	new_obj.global_rotation = props["rotation"]
+	
+	_add_collision_recursive(new_obj)
+	
+	new_obj.add_to_group("Pickable")
+	#for c in new_obj.get_children():
+		# enable collisions (if present) and optionally mark children pickable so raycast hits them
+	#	if c.has_node("CollisionShape3D"):
+	#		var col = c.get_node("CollisionShape3D")
+	#		if col:
+	#			col.disabled = false
+		# Optionally add children to group - but your get_object_under_cursor walks up anyway
+	#	c.add_to_group("Pickable")
 	save_system.store_properties(props["position"],props["rotation"])
+	
+func _add_collision_recursive(node: Node3D) -> void:
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			if not child.get_node_or_null("CollisionShape3D"):
+				var body = StaticBody3D.new()
+				body.name = "StaticBody3D"
+
+				var shape = CollisionShape3D.new()
+				shape.name = "CollisionShape3D"
+				shape.shape = child.mesh.create_trimesh_shape() # accurate collision
+
+				# Reparent child under StaticBody3D
+				var original_parent = child.get_parent()
+				original_parent.remove_child(child)
+				body.add_child(child)
+				body.add_child(shape)
+
+				# Add StaticBody3D to the original parent
+				original_parent.add_child(body)
+				
+				# Add to pickable group
+				body.add_to_group("Pickable")
+		else:
+			_add_collision_recursive(child)
+
+
 
 # Gets infro from file, adds child
 func _load_object(pos: Vector3, rot: Vector3):
-	var new_obj: StaticBody3D = object.get_properties()["mesh"].instantiate()
+	var new_obj: Node3D = object.get_properties()["mesh"].instantiate()
 	add_child(new_obj)
 	new_obj.global_position = pos
 	new_obj.global_rotation = rot

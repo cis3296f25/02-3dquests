@@ -77,6 +77,10 @@ text = "Load"
 layout_mode = 2
 text = "Assets Menu"
 
+[node name="DeleteObjMode" type="CheckButton" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Delete"
+
 [node name="OpenMenuControl" type="Control" parent="UILayer"]
 visible = false
 layout_mode = 3
@@ -88,6 +92,7 @@ script = ExtResource("6_gtwgr")
 [node name="OpenMenuWindow" type="Window" parent="UILayer/OpenMenuControl"]
 disable_3d = true
 oversampling_override = 1.0
+position = Vector2i(0, 36)
 size = Vector2i(700, 500)
 
 [node name="PanelContainer" type="PanelContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow"]

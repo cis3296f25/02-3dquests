@@ -27,20 +27,34 @@ var placer_obj: Node3D
 
 #parent node
 @onready var parent = get_parent()
+@onready var ui = get_parent().get_node("UILayer/MainUIControl")  # adjust path
 
-func _input(event):
+func _unhandled_input(event):
+	raycast.force_raycast_update()
+	
 	# Receives mouse motion
 	if event is InputEventMouseMotion:
 		_mouse_position = event.relative
 	
 	# Receives mouse button input
-	if event is InputEventMouseButton:
+	if event is InputEventMouseButton and event.pressed:
+		var delete_mode = ui.delete_mode_enabled
 		match event.button_index:
-			MOUSE_BUTTON_RIGHT: # Only allows camera rotation if right click down
-				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if event.pressed else Input.MOUSE_MODE_VISIBLE)
 			MOUSE_BUTTON_LEFT:
-				if parent.can_place:
-					parent.place_object()
+				if delete_mode:
+					var obj_to_delete = get_object_under_cursor()
+					if obj_to_delete:
+						obj_to_delete.queue_free()
+				else:
+					if picked_object:
+						drop_object()
+					else:
+						raycast.force_raycast_update()
+						var obj = get_object_under_cursor()
+						if obj:
+							pick_up_object(obj)
+						elif parent.can_place:
+							parent.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
 				_update_place_distance()
@@ -52,7 +66,22 @@ func _input(event):
 func _process(delta):
 	_update_mouselook()
 	_update_movement(delta)
-	get_place_object_pos()
+	if picked_object:
+		var new_pos = get_place_object_pos()
+		picked_object.global_position = new_pos
+	
+		var rotation_speed = 90 # degrees per second
+		if Input.is_action_pressed("rotate_left"):
+			picked_object.rotate_y(deg_to_rad(rotation_speed * delta))
+		if Input.is_action_pressed("rotate_right"):
+			picked_object.rotate_y(deg_to_rad(-rotation_speed * delta))
+		if Input.is_action_pressed("rotate_up"):
+			picked_object.rotate_object_local(Vector3(1,0,0), deg_to_rad(rotation_speed * delta))
+		if Input.is_action_pressed("rotate_down"):
+			picked_object.rotate_object_local(Vector3(1,0,0), deg_to_rad(-rotation_speed * delta))
+	else:
+		get_place_object_pos()
+	
 
 # Updates camera movement
 func _update_movement(delta):
@@ -82,19 +111,20 @@ func _update_movement(delta):
 
 # Updates mouse look 
 func _update_mouselook():
-	# Only rotates mouse if the mouse is captured
-	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		_mouse_position *= sensitivity
 		var yaw = _mouse_position.x
 		var pitch = _mouse_position.y
 		_mouse_position = Vector2(0, 0)
 		
-		# Prevents looking up/down too far
 		pitch = clamp(pitch, -90 - _total_pitch, 90 - _total_pitch)
 		_total_pitch += pitch
 	
 		rotate_y(deg_to_rad(-yaw))
 		rotate_object_local(Vector3(1,0,0), deg_to_rad(-pitch))
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 # Updates how far the place distance is from the camera
 func _update_place_distance():
@@ -114,6 +144,7 @@ func get_place_object_pos():
 		var point = raycast.get_collision_point()
 		point = point.round()
 		placer_obj.position = point
+	return placer_obj.global_transform.origin
 
 # Converts the current mouse position to a point in 3D space
 func get_mouse_world_pos():
@@ -121,6 +152,76 @@ func get_mouse_world_pos():
 		var mp  = get_viewport().get_mouse_position()
 		return self.project_ray_origin(mp) + self.project_ray_normal(mp) * 50.0
 
+func add_collision_to_mesh(mesh_instance: MeshInstance3D) -> void:
+	# Only add if it doesn’t already have a collision
+	if mesh_instance.get_node_or_null("CollisionShape3D"):
+		return
+	var static_body = StaticBody3D.new()
+	static_body.name = "StaticBody3D"
+
+	var collision_shape = CollisionShape3D.new()
+	collision_shape.name = "CollisionShape3D"
+
+	# Use a simple BoxShape for now
+	var aabb = mesh_instance.get_aabb()
+	collision_shape.shape = BoxShape3D.new()
+	collision_shape.shape.size = aabb.size
+
+	# Re-parent mesh under static body
+	mesh_instance.parent.remove_child(mesh_instance)
+	static_body.add_child(mesh_instance)
+	static_body.add_child(collision_shape)
+
+	# Add to Pickable group so your raycast detects it
+	static_body.add_to_group("Pickable")
+
+	# Add static body to scene
+	parent.add_child(static_body)
+
 #sets the ghost object to be placed
 func set_to_place(obj: Node3D):
 	placer_obj = obj
+
+var picked_object: Node3D = null
+
+func pick_up_object(obj: Node3D):
+	picked_object = obj
+	#placer_obj = obj
+	#placer_obj.visible = true
+	#show_ghost()
+	_set_visibility_recursive(picked_object, true)  # Hide the real object
+
+func drop_object():
+	if picked_object:
+		#picked_object.global_transform = placer_obj.global_transform
+		#_set_visibility_recursive(picked_object, true)
+		#placer_obj.visible = false
+		picked_object = null
+
+func _set_visibility_recursive(node: Node, visible: bool) -> void:
+	if node is MeshInstance3D:
+		node.visible = visible
+	for child in node.get_children():
+		_set_visibility_recursive(child, visible)
+
+		
+func get_object_under_cursor() -> Node3D:
+	raycast.force_raycast_update()
+	if raycast.is_colliding():
+		var collider = raycast.get_collider()
+		# walk up until we find the ancestor that is in the Pickable group
+		while collider != null and not collider.is_in_group("Pickable"):
+			# stop if we reach the top-level map parent to avoid climbing too far
+			if collider == parent or collider == placer_obj:
+				collider = null
+				break
+			collider = collider.get_parent()
+		# ignore floor and null
+		if collider != null and collider != get_parent().get_node("Floor"):
+			return collider
+	return null
+	
+func show_ghost():
+	for child in placer_obj.get_children():
+		if child is MeshInstance3D:
+			child.visible = true
