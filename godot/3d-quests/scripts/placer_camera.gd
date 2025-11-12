@@ -1,5 +1,7 @@
 class_name FreeLookCamera extends Camera3D
 
+@onready var root = get_parent()
+
 @export_range(0.0, 1.0) var sensitivity: float = 0.25
 
 # Mouse state
@@ -26,7 +28,7 @@ var near_place_distance: int = -2
 var placer_obj: Node3D
 
 #parent node
-@onready var parent = get_parent()
+@onready var camera_manager = get_parent().get_node("CameraTestManager")
 @onready var ui = get_parent().get_node("UILayer/MainUIControl")  # adjust path
 
 func _unhandled_input(event):
@@ -44,7 +46,7 @@ func _unhandled_input(event):
 				if delete_mode:
 					var obj_to_delete = get_object_under_cursor()
 					if obj_to_delete:
-						obj_to_delete.queue_free()
+						root.delete_object(obj_to_delete.get_meta("obj_id"))
 				else:
 					if picked_object:
 						drop_object()
@@ -53,8 +55,8 @@ func _unhandled_input(event):
 						var obj = get_object_under_cursor()
 						if obj:
 							pick_up_object(obj)
-						elif parent.can_place:
-							parent.place_object()
+						elif camera_manager.can_place:
+							camera_manager.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1
 				_update_place_distance()
@@ -176,7 +178,7 @@ func add_collision_to_mesh(mesh_instance: MeshInstance3D) -> void:
 	static_body.add_to_group("Pickable")
 
 	# Add static body to scene
-	parent.add_child(static_body)
+	camera_manager.add_child(static_body)
 
 #sets the ghost object to be placed
 func set_to_place(obj: Node3D):
@@ -186,23 +188,12 @@ var picked_object: Node3D = null
 
 func pick_up_object(obj: Node3D):
 	picked_object = obj
-	#placer_obj = obj
-	#placer_obj.visible = true
-	#show_ghost()
-	_set_visibility_recursive(picked_object, true)  # Hide the real object
+	root.pickup_object(obj.get_meta("obj_id"))
 
 func drop_object():
 	if picked_object:
-		#picked_object.global_transform = placer_obj.global_transform
-		#_set_visibility_recursive(picked_object, true)
-		#placer_obj.visible = false
+		root.drop_object(picked_object.get_meta("obj_id"), picked_object.global_position, picked_object.global_rotation)
 		picked_object = null
-
-func _set_visibility_recursive(node: Node, visible: bool) -> void:
-	if node is MeshInstance3D:
-		node.visible = visible
-	for child in node.get_children():
-		_set_visibility_recursive(child, visible)
 
 		
 func get_object_under_cursor() -> Node3D:
@@ -212,7 +203,7 @@ func get_object_under_cursor() -> Node3D:
 		# walk up until we find the ancestor that is in the Pickable group
 		while collider != null and not collider.is_in_group("Pickable"):
 			# stop if we reach the top-level map parent to avoid climbing too far
-			if collider == parent or collider == placer_obj:
+			if collider == get_parent() or collider == placer_obj:
 				collider = null
 				break
 			collider = collider.get_parent()
