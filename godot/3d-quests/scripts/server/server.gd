@@ -9,7 +9,7 @@ var _tcp_server = TCPServer.new()
 # Our connected peers list.
 var _peers: Dictionary[int, WebSocketPeer] = {}
 
-var last_peer_id := 1
+var last_peer_id := 0
 
 # Authoritative object storage
 var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}

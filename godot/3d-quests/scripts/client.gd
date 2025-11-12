@@ -96,6 +96,7 @@ func add_object_to_props_container(data_recieved):
 	var obj_id = int(data_recieved["obj_id"])
 	var scene = load(data_recieved.mesh)
 	var obj = scene.instantiate()
+	obj.owner = null
 	obj.set_meta("obj_id", obj_id)
 	_add_collision_recursive(obj, obj_id)
 	obj.add_to_group("Pickable")
