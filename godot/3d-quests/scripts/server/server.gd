@@ -199,10 +199,10 @@ func send_world_state(peer_id):
 		var obj_data = objects[obj_id]
 		obj_data["obj_id"] = obj_id
 		obj_list.append(obj_data)
-		peer.send_text(JSON.stringify({
-			"type": "world_state_update",
-			"objects": obj_list
-		}))
+	peer.send_text(JSON.stringify({
+		"type": "world_state_update",
+		"objects": obj_list
+	}))
 
 	
 	
