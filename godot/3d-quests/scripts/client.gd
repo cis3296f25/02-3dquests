@@ -45,38 +45,7 @@ func _process(_delta):
 						var data_recieved = json.data
 						print(data_recieved)
 						if typeof(data_recieved) == TYPE_DICTIONARY:
-							var obj_id = int(data_recieved["obj_id"])
-							match data_recieved.type:
-								"object_created":
-									var scene = load(data_recieved.mesh)
-									var obj = scene.instantiate()
-									obj.set_meta("obj_id", obj_id)
-									_add_collision_recursive(obj, obj_id)
-									obj.add_to_group("Pickable")
-									$PropsContainer.add_child(obj)
-									obj.global_position = _parse_vector3_string(data_recieved.position)
-									obj.global_rotation = _parse_vector3_string(data_recieved.rotation)
-									local_objects[obj_id] = obj
-								"object_updated":
-									if local_objects.has(obj_id):
-										var obj = local_objects[obj_id]
-										obj.global_position = _parse_vector3_string(data_recieved.position)
-										obj.global_rotation = _parse_vector3_string(data_recieved.rotation)
-								"object_deleted":
-									if local_objects.has(obj_id):
-										local_objects[obj_id].queue_free()
-										local_objects.erase(obj_id)
-								"object_picked_up":
-									if local_objects.has(obj_id):
-										var obj = local_objects[obj_id]
-										print("Object %d picked up by peer %d" % [obj_id, data_recieved.owner_id])
-								"object_dropped":
-									if local_objects.has(obj_id):
-										var obj = local_objects[obj_id]
-										obj.position = _parse_vector3_string(data_recieved.position)
-										obj.rotation = _parse_vector3_string(data_recieved.rotation)
-										
-									
+							handle_data_recieved(data_recieved)
 					print("< Got text data from server: %s" % packet_text)
 			else:
 				print("< Got binary data from server: %d bytes" % packet.size())
@@ -93,6 +62,38 @@ func _process(_delta):
 		var code = socket.get_close_code()
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
 		set_process(false) # Stop processing.
+		
+func handle_data_recieved(data_recieved: Dictionary):
+	var obj_id = int(data_recieved["obj_id"])
+	match data_recieved.type:
+		"object_created":
+			var scene = load(data_recieved.mesh)
+			var obj = scene.instantiate()
+			obj.set_meta("obj_id", obj_id)
+			_add_collision_recursive(obj, obj_id)
+			obj.add_to_group("Pickable")
+			$PropsContainer.add_child(obj)
+			obj.global_position = _parse_vector3_string(data_recieved.position)
+			obj.global_rotation = _parse_vector3_string(data_recieved.rotation)
+			local_objects[obj_id] = obj
+		"object_updated":
+			if local_objects.has(obj_id):
+				var obj = local_objects[obj_id]
+				obj.global_position = _parse_vector3_string(data_recieved.position)
+				obj.global_rotation = _parse_vector3_string(data_recieved.rotation)
+		"object_deleted":
+			if local_objects.has(obj_id):
+				local_objects[obj_id].queue_free()
+				local_objects.erase(obj_id)
+		"object_picked_up":
+			if local_objects.has(obj_id):
+				var obj = local_objects[obj_id]
+				print("Object %d picked up by peer %d" % [obj_id, data_recieved.owner_id])
+		"object_dropped":
+			if local_objects.has(obj_id):
+				var obj = local_objects[obj_id]
+				obj.position = _parse_vector3_string(data_recieved.position)
+				obj.rotation = _parse_vector3_string(data_recieved.rotation)
 		
 func _parse_vector3_string(vector_str: String) -> Vector3:
 	# Remove parentheses and split by commas
