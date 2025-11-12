@@ -31,7 +31,7 @@ Go To http://localhost:3000/mapmaker/index.html to see the game without signing 
 
 # How to run godot server on windows powershell
 ```
-& "C:\Users\82cha\Downloads\Godot_v4.5.1-stable_win64.exe\Godot_v4.5.1-stable_win64_console.exe" --headless --path "D:\Projects\02-3dquests\godot\3d-quests" --scene "res://scenes/server.tscn"
+& "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn"
 ```
 
 # How to contribute
