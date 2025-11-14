@@ -27,7 +27,7 @@ pnpm dev
 You're now running the website!
 
 Contact 82chaudrys@gmail.com for .env file for database credentials to sign in
-Go To http://localhost:3000/mapmaker/index.html to see the game without signing in
+Go To http://localhost:3000/mapmaker/3DQuestsServer.html to see the game without signing in
 
 # How to run godot server on windows powershell
 ```
