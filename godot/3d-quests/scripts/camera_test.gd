@@ -1,11 +1,13 @@
 extends Node3D
 
-@onready var camera: Camera3D = $PlacerCamera
+@onready var parent = get_parent()
+@onready var camera: Camera3D = get_parent().get_node("PlacerCamera")
 @onready var object: Node3D = $GhostObject
-@onready var main_ui = $UILayer/MainUIControl
-@onready var object_menu = $UILayer/OpenMenuControl
-@onready var object_menu_window = $UILayer/OpenMenuControl/OpenMenuWindow
-@onready var save_system = $SaveSystem
+@onready var main_ui = get_parent().get_node("UILayer/MainUIControl")
+@onready var object_menu = get_parent().get_node("UILayer/OpenMenuControl")
+@onready var object_menu_window = get_parent().get_node("UILayer/OpenMenuControl/OpenMenuWindow")
+@onready var save_system = get_parent().get_node("SaveSystem")
+@onready var props_container = get_parent().get_node("PropsContainer")
 
 var can_place := false
 
@@ -24,7 +26,7 @@ func _ready() -> void:
 #NOT FINAL SOLUTION
 func _process(delta: float) -> void:
 	for child in get_children():
-		if "position" in child and child != $Floor:
+		if "position" in child and child != get_parent().get_node("Floor"):
 			child.position = child.position.clamp(min_pos, max_pos)
 	if can_place:
 		object.visible = true
@@ -38,12 +40,12 @@ func _on_mode_changed(enabled: bool) -> void:
 #gets info from ghost obj, adds child
 func place_object():
 	var props = object.get_properties()
-	var new_obj: Node3D = props["mesh"].instantiate()
-	add_child(new_obj)
-	new_obj.global_position = props["position"]
-	new_obj.global_rotation = props["rotation"]
+	#var new_obj: Node3D = props["mesh"].instantiate()
+	#props_container.add_child(new_obj)
+	#new_obj.global_position = props["position"]
+	#new_obj.global_rotation = props["rotation"]
 	
-	_add_collision_recursive(new_obj)
+	#_add_collision_recursive(new_obj)
 	
 	new_obj.add_to_group("Pickable")
 	#for c in new_obj.get_children():
@@ -80,8 +82,6 @@ func _add_collision_recursive(node: Node3D) -> void:
 				body.add_to_group("Pickable")
 		else:
 			_add_collision_recursive(child)
-
-
 
 # Gets infro from file, adds child
 func _load_object(pos: Vector3, rot: Vector3, path: String):

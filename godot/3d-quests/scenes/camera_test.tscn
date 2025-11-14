@@ -1,5 +1,6 @@
-[gd_scene load_steps=12 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=13 format=3 uid="uid://dwcpw05no3g37"]
 
+[ext_resource type="Script" uid="uid://cmbbtr1i411hs" path="res://scripts/client.gd" id="1_16sdf"]
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
 [ext_resource type="Script" uid="uid://ce8ktxqnbf673" path="res://scripts/camera_test.gd" id="1_onuh2"]
 [ext_resource type="PackedScene" uid="uid://brcua0gc1h8om" path="res://scenes/ghost_object.tscn" id="2_6hmdl"]
@@ -21,10 +22,13 @@ size = Vector2(150, 150)
 background_mode = 1
 background_color = Color(0, 0.8352941, 1, 1)
 
-[node name="CameraTest" type="Node3D"]
+[node name="MainClient" type="Node3D"]
+script = ExtResource("1_16sdf")
+
+[node name="CameraTestManager" type="Node3D" parent="."]
 script = ExtResource("1_onuh2")
 
-[node name="GhostObject" parent="." instance=ExtResource("2_6hmdl")]
+[node name="GhostObject" parent="CameraTestManager" instance=ExtResource("2_6hmdl")]
 ghost_mesh = ExtResource("3_3pev5")
 
 [node name="PlacerCamera" parent="." instance=ExtResource("1_811nu")]
@@ -111,3 +115,5 @@ columns = 3
 
 [node name="SaveSystem" type="Node" parent="."]
 script = ExtResource("6_tt3eh")
+
+[node name="PropsContainer" type="Node3D" parent="."]

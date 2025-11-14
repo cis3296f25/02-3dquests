@@ -26,8 +26,13 @@ pnpm dev
 - Click on http://localhost:3000/
 You're now running the website!
 
-Contact 82chaudrys@gmail.com for .env file
+Contact 82chaudrys@gmail.com for .env file for database credentials to sign in
 Go To http://localhost:3000/mapmaker/index.html to see the game without signing in
+
+# How to run godot server on windows powershell
+```
+& "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn"
+```
 
 # How to contribute
 More to be added later... 
