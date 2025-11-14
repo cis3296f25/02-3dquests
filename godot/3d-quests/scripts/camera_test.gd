@@ -47,7 +47,7 @@ func place_object():
 	
 	#_add_collision_recursive(new_obj)
 	
-	new_obj.add_to_group("Pickable")
+	#new_obj.add_to_group("Pickable")
 	#for c in new_obj.get_children():
 		# enable collisions (if present) and optionally mark children pickable so raycast hits them
 	#	if c.has_node("CollisionShape3D"):
@@ -56,6 +56,11 @@ func place_object():
 	#			col.disabled = false
 		# Optionally add children to group - but your get_object_under_cursor walks up anyway
 	#	c.add_to_group("Pickable")
+	parent.place_object(
+		props["mesh"].resource_path,
+		props["position"],
+		props["rotation"]
+	)
 	save_system.store_properties(props["position"],props["rotation"], props["path"])
 	
 func _add_collision_recursive(node: Node3D) -> void:
