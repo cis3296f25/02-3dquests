@@ -9,7 +9,7 @@ var _tcp_server = TCPServer.new()
 # Our connected peers list.
 var _peers: Dictionary[int, WebSocketPeer] = {}
 
-var last_peer_id := 1
+var last_peer_id := 0
 
 # Authoritative object storage
 var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
@@ -42,6 +42,9 @@ func _process(_delta):
 
 		var peer_state = peer.get_ready_state()
 		if peer_state == WebSocketPeer.STATE_OPEN:
+			if not peer.has_meta("sent_world"):
+				send_world_state(peer_id)
+				peer.set_meta("sent_world", true)
 			while peer.get_available_packet_count():
 				var packet = peer.get_packet()
 				if peer.was_string_packet():
@@ -188,6 +191,19 @@ func handle_drop(peer_id: int, data: Dictionary):
 		"position": data.position,
 		"rotation": data.rotation
 	})
+	
+func send_world_state(peer_id):
+	var peer = _peers[peer_id]
+	var obj_list: Array = []
+	for obj_id in objects.keys():
+		var obj_data = objects[obj_id]
+		obj_data["obj_id"] = obj_id
+		obj_list.append(obj_data)
+	peer.send_text(JSON.stringify({
+		"type": "world_state_update",
+		"objects": obj_list
+	}))
+
 	
 	
 func broadcast(data: Dictionary):
