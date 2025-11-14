@@ -54,7 +54,7 @@ func place_object():
 	#			col.disabled = false
 		# Optionally add children to group - but your get_object_under_cursor walks up anyway
 	#	c.add_to_group("Pickable")
-	save_system.store_properties(props["position"],props["rotation"])
+	save_system.store_properties(props["position"],props["rotation"], props["path"])
 	
 func _add_collision_recursive(node: Node3D) -> void:
 	for child in node.get_children():
@@ -84,12 +84,16 @@ func _add_collision_recursive(node: Node3D) -> void:
 
 
 # Gets infro from file, adds child
-func _load_object(pos: Vector3, rot: Vector3):
-	var new_obj: Node3D = object.get_properties()["mesh"].instantiate()
-	add_child(new_obj)
-	new_obj.global_position = pos
-	new_obj.global_rotation = rot
-	save_system.store_properties(pos, rot)
+func _load_object(pos: Vector3, rot: Vector3, path: String):
+	if load(path) != null:
+		var new_node = Node3D.new()
+		add_child(new_node)
+		var new_obj = load(path).instantiate()
+		new_node.add_child(new_obj)
+		new_node.global_position = pos
+		new_node.global_rotation = rot
+		save_system.store_properties(pos, rot, path)
+		_add_collision_recursive(new_node)
 
 func _save_button() -> void:
 	save_system.save()
