@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2aannabwemon"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_24pcb"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tko55"]
+
+[node name="Cube" type="StaticBody3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_24pcb")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_tko55")

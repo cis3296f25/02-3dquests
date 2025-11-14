@@ -1,28 +1,41 @@
-# Project Name
-Put here a short paragraph describing your project. 
-Adding an screenshot or a mockup of your application in action would be nice.  
+# 3D-Quests
+For TTRPG (table-top role-playing game) consumers who need to play online, 
+3D-Quests is a free-to-play 3D VTT (virtual table top) web app, unlike D&D 
+(Dungeons and Dragons) Beyond's Signal 3D VTT or Roll20's 2D VTT. Our product 
+combines affordability, accessibility, and immersion to give the best experience 
+to the largest number of people.
 
-![This is a screenshot.](images.png)
+(Screenshot will be added later)
+
 # How to run
-Provide here instructions on how to use your application.   
-- Download the latest binary from the Release section on the right on GitHub.  
-- On the command line uncompress using
+- Have installed node v22.20.02
+- Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
+- On the command line run the following commands:
 ```
-tar -xzf  
+npm install
 ```
-- On the command line run with
 ```
-./hello
+npm install -g pnpm
 ```
-- You will see Hello World! on your terminal. 
+```
+npx prisma generate 
+```
+```
+pnpm dev
+```
+- Click on http://localhost:3000/
+You're now running the website!
+
+Contact 82chaudrys@gmail.com for .env file for database credentials to sign in
+Go To http://localhost:3000/mapmaker/index.html to see the game without signing in
+
+# How to run godot server on windows powershell
+```
+& "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn"
+```
 
 # How to contribute
-Follow this project board to know the latest status of the project: [http://...]([http://...])  
+More to be added later... 
 
 ### How to build
-- Use this github repository: ... 
-- Specify what branch to use for a more stable release or for cutting edge development.  
-- Use InteliJ 11
-- Specify additional library to download if needed 
-- What file and target to compile and run. 
-- What is expected to happen when the app start. 
+More to be added later...

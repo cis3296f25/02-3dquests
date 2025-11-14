@@ -17,7 +17,7 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
   if (!campaign) return <p>Campaign not found</p>;
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center min-h-screen">
     <div className="p-4">
       <h1 className="text-2xl font-bold">{campaign.name}</h1>
       <p>{campaign.description}</p>
@@ -31,7 +31,7 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
         ))}
       </ul>
 
-      <div className="w-full h-screen bg-black flex items-center justify-center">
+      <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden">
         <iframe
           src="/mapmaker/index.html"
           className="w-[90%] h-[90%] border-2 border-gray-700 rounded-xl"
