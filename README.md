@@ -10,8 +10,8 @@ to the largest number of people.
 # How to run (for Windows)
 - Have installed node v22.20.02
 - Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
-- Have godot installed: 
-- On the command line run the following commands:
+- Have godot installed: https://godotengine.org/download/windows/. (Extract .exe from zipped folder)
+- On the command line (or your choice of terminal run the following commands:
 ```
 npm install
 ```
