@@ -5,6 +5,17 @@ func _ready() -> void:
 	if ghost_mesh:
 		set_mesh(ghost_mesh)
 
+func _process(delta: float) -> void:
+	var rotation_speed = 90 # degrees per second
+	if Input.is_action_pressed("rotate_left"):
+		rotate_y(deg_to_rad(rotation_speed * delta))
+	if Input.is_action_pressed("rotate_right"):
+		rotate_y(deg_to_rad(-rotation_speed * delta))
+	if Input.is_action_pressed("rotate_up"):
+		rotate_object_local(Vector3(1,0,0), deg_to_rad(rotation_speed * delta))
+	if Input.is_action_pressed("rotate_down"):
+		rotate_object_local(Vector3(1,0,0), deg_to_rad(-rotation_speed * delta))
+
 #set the mesh that will be replicated by the ghost
 func set_mesh(mesh: PackedScene):
 	#remove any previous mesh
@@ -22,7 +33,8 @@ func get_properties() -> Dictionary:
 	var properties = {
 		"mesh": ghost_mesh,
 		"position": self.global_position,
-		"rotation": self.global_rotation
+		"rotation": self.global_rotation,
+		"path": ghost_mesh.resource_path
 	}
 	
 	return properties
