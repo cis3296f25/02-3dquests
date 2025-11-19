@@ -18,7 +18,7 @@ export default function AddCampaign() {
     const description = formData.get("description") as string;
 
     try {
-        const res = await fetch("/api/campaigns", {
+        const res = await fetch("/api/campaign/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, description }),

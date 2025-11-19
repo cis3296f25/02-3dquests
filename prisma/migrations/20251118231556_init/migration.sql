@@ -2,11 +2,36 @@
 CREATE TYPE "Role" AS ENUM ('GM', 'PLAYER');
 
 -- CreateTable
+CREATE TABLE "ServerSession" (
+    "id" TEXT NOT NULL,
+    "campaignId" TEXT NOT NULL,
+    "awsSessionId" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "endedAt" TIMESTAMP(3),
+    "activePlayers" INTEGER NOT NULL,
+
+    CONSTRAINT "ServerSession_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SessionParticipant" (
+    "id" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "connected" BOOLEAN NOT NULL DEFAULT true,
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastHeart" TIMESTAMP(3),
+
+    CONSTRAINT "SessionParticipant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Map" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL DEFAULT 'WorldMap',
     "description" TEXT NOT NULL DEFAULT 'The world map of your campaign',
-    "link" TEXT NOT NULL,
+    "data" JSONB NOT NULL,
     "campaignId" TEXT NOT NULL,
 
     CONSTRAINT "Map_pkey" PRIMARY KEY ("id")
@@ -101,6 +126,15 @@ CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "session_token_key" ON "session"("token");
+
+-- AddForeignKey
+ALTER TABLE "ServerSession" ADD CONSTRAINT "ServerSession_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "Campaign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SessionParticipant" ADD CONSTRAINT "SessionParticipant_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "ServerSession"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SessionParticipant" ADD CONSTRAINT "SessionParticipant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Map" ADD CONSTRAINT "Map_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "Campaign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

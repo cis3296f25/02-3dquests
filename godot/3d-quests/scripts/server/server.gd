@@ -1,8 +1,5 @@
 extends Node
 
-# The port we will listen to.
-const PORT = 9080
-
 # Our TCP Server instance.
 var _tcp_server = TCPServer.new()
 
@@ -17,8 +14,20 @@ var last_object_id := 0
 
 
 func _ready():
+	var args = OS.get_cmdline_args()
+	var port
+	var campaign_id
+	for a in args:
+		if a.begins_with("--port="):
+			port = int(a.split("=")[1])
+		if a.begins_with("--campaign="):
+			campaign_id = a.split("=")[1]
+		else:
+			port = 67
+
+	print("Starting server for campaign: %s on port %d" % [campaign_id, port])
 	# Start listening on the given port.
-	var err = _tcp_server.listen(PORT)
+	var err = _tcp_server.listen(port)
 	if err == OK:
 		print("Server started.")
 	else:

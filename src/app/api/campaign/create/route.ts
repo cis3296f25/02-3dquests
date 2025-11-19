@@ -19,11 +19,6 @@ export async function POST(req: Request) {
             name,
             description,
             gmId: userId,
-            maps: {
-                create: {
-                link: "/maps/default_map.png"
-                },
-            },
             members: {
                 create: [
                     {

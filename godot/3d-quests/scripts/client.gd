@@ -4,7 +4,9 @@ extends Node
 # Use "ws://localhost:9080" if testing with the minimal server example below.
 # `wss://` is used for secure connections,
 # while `ws://` is used for plain text (insecure) connections.
-@export var websocket_url = "ws://localhost:9080"
+var campaign_id
+var token: String = ""
+
 
 # Our WebSocketClient instance.
 var socket = WebSocketPeer.new()
@@ -12,6 +14,37 @@ var socket = WebSocketPeer.new()
 var local_objects: Dictionary[int, Node3D] = {}
 
 func _ready():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+	# Read the campaignId from the window object
+	if Engine.has_singleton("JavaScript"):
+		var js = Engine.get_singleton("JavaScript")
+		campaign_id = js.eval("window.GAME_CONFIG.campaignId")
+		print("Campaign ID:", campaign_id)
+	
+	http_request.request_completed.connect(self._http_request_completed)
+
+	var error = http_request.request("https://3dquests.com/api/get-active-session/" + campaign_id)
+	if error != OK:
+		push_error("An error occurred in the HTTP request.")
+
+	
+
+func _http_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		push_error("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		push_error("Failed to parse JSON from session API")
+		return
+	
+	token = text.result.token
+	
+	var websocket_url = "wss://game.3dquests.com:9080/campaign/%s?token=%s" % [campaign_id, token]
+
 	# Initiate connection to the given URL.
 	var err = socket.connect_to_url(websocket_url)
 	if err == OK:
@@ -21,6 +54,7 @@ func _ready():
 	else:
 		push_error("Unable to connect.")
 		set_process(false)
+
 
 
 func _process(_delta):

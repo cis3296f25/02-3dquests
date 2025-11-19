@@ -8,11 +8,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ServerSession {
+  id           String           @id @default(cuid())
+  campaignId   String
+  awsSessionId String?
+  status       String           @default("active")
+  createdAt    DateTime         @default(now())
+  endedAt      DateTime?
+  activePlayers Int
+  campaign     Campaign         @relation(fields: [campaignId], references: [id])
+  participants SessionParticipant[]
+}
+
+model SessionParticipant {
+  id         String             @id @default(cuid())
+  sessionId  String
+  userId     Int
+  connected  Boolean            @default(true)
+  joinedAt   DateTime           @default(now())
+  lastHeart  DateTime? 
+  session    ServerSession      @relation(fields: [sessionId], references: [id])
+  user       User               @relation(fields: [userId], references: [id])
+}
+
 model Map {
   id          String            @id @default(uuid())
   name        String            @default("WorldMap")
   description String            @default("The world map of your campaign")
-  link        String
+  data        Json
   campaignId  String
   campaign    Campaign          @relation(fields: [campaignId], references: [id])
 }
@@ -27,6 +50,8 @@ model Campaign {
   maps        Map[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  sessions    ServerSession[]
+
 }
 
 model CampaignMember {
@@ -60,6 +85,7 @@ model User {
   sessions      Session[]
   campaigns     Campaign[]
   memberships   CampaignMember[]
+  sessionPart   SessionParticipant[]
 
   @@map("user")
 }
