@@ -57,8 +57,8 @@ export async function POST(req: Request) {
         const newSession = await prisma.serverSession.create({
             data: {
                 campaignId,
-                awsSessionId: serverResponse.awsSessionId || null,     
-                activePlayers: serverResponse.activePlayers,
+                awsSessionId: serverResponse.session_token,     
+                activePlayers: serverResponse.activePlayers || 1,
                 createdAt: new Date(),
                 status: "active", 
             },

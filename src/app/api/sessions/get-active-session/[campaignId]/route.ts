@@ -18,13 +18,6 @@ export async function GET(req: Request, { params }: { params: { campaignId: stri
   const isMember = await prisma.campaignMember.findFirst({ where: { campaignId, userId } });
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const payload = {
-    userId,
-    campaignId,
-    ts: Date.now()
-  }
-  const token = generateJWT(payload);
-
   const activeSession = await prisma.serverSession.findFirst({
     where: {
       campaignId,
@@ -41,26 +34,7 @@ export async function GET(req: Request, { params }: { params: { campaignId: stri
   }
 
   return NextResponse.json({
-    token,
-    session: activeSession,
+    campaignId: activeSession.campaignId,
+    session_token: activeSession.awsSessionId,
   });
-}
-
-function generateJWT(payload: object) {
-  if (!JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined")
-  }
-  const header = { alg: "HS256", typ: "JWT" }
-
-  const base64url = (obj: object) =>
-      Buffer.from(JSON.stringify(obj)).toString("base64url")
-
-  const unsignedToken = `${base64url(header)}.${base64url(payload)}`
-
-  const signature = crypto
-      .createHmac("sha256", JWT_SECRET)
-      .update(unsignedToken)
-      .digest("base64url")
-
-  return `${unsignedToken}.${signature}`
 }

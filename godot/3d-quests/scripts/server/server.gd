@@ -12,18 +12,20 @@ var last_peer_id := 0
 var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
 var last_object_id := 0
 
+var port = ""
+var campaign_id = ""
+var session_token = ""
 
 func _ready():
 	var args = OS.get_cmdline_args()
-	var port
-	var campaign_id
+	
 	for a in args:
-		if a.begins_with("--port="):
+		if a.begins_with("--session-token="):
+			session_token = a.split("=")[1]
+		elif a.begins_with("--port="):
 			port = int(a.split("=")[1])
-		if a.begins_with("--campaign="):
+		elif a.begins_with("--campaign-id="):
 			campaign_id = a.split("=")[1]
-		else:
-			port = 67
 
 	print("Starting server for campaign: %s on port %d" % [campaign_id, port])
 	# Start listening on the given port.

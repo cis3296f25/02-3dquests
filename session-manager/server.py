@@ -1,6 +1,8 @@
-from fastapi import FastAPI, Request
-import asyncio
+from fastapi import FastAPI, Request, HTTPException
 from .manager import ServerManager
+from .utils import verify_jwt, user_can_access_campaign
+import secrets
+
 
 app = FastAPI()
 manager = ServerManager()
@@ -10,8 +12,21 @@ async def start_session(request: Request):
     data = await request.json()
     campaign_id = data["campaignId"]
     jwt = data["token"]
-    process = await manager.start_server(campaign_id, jwt)
-    return {"status": "started", "pid": process.pid}
+    
+    if not campaign_id or not jwt:
+        raise HTTPException(status_code=400, detail="Missing campaignId or token")
+    
+    user = verify_jwt(jwt)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not user_can_access_campaign(user, campaign_id):
+        raise HTTPException(status_code=403, detail="Access denied to campaign")
+
+    session_token = secrets.token_hex(32)
+    
+    process = await manager.start_server(campaign_id, session_token)
+    return {"status": "started", "pid": process.pid, "session_token": session_token}
 
 @app.post("/stop")
 async def stop_session(request: Request):

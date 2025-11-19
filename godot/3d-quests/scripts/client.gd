@@ -4,7 +4,8 @@ extends Node
 # Use "ws://localhost:9080" if testing with the minimal server example below.
 # `wss://` is used for secure connections,
 # while `ws://` is used for plain text (insecure) connections.
-var campaign_id
+var campaign_id: String = ""
+var session_token: String = ""
 var token: String = ""
 
 
@@ -28,8 +29,6 @@ func _ready():
 	if error != OK:
 		push_error("An error occurred in the HTTP request.")
 
-	
-
 func _http_request_completed(result, response_code, headers, body):
 	if response_code != 200:
 		push_error("Failed to get active session: %s" % response_code)
@@ -41,9 +40,9 @@ func _http_request_completed(result, response_code, headers, body):
 		push_error("Failed to parse JSON from session API")
 		return
 	
-	token = text.result.token
+	session_token = text.result.session_token
 	
-	var websocket_url = "wss://game.3dquests.com:9080/campaign/%s?token=%s" % [campaign_id, token]
+	var websocket_url = "wss://game.3dquests.com/campaign?token=%s" % [session_token]
 
 	# Initiate connection to the given URL.
 	var err = socket.connect_to_url(websocket_url)
@@ -54,8 +53,6 @@ func _http_request_completed(result, response_code, headers, body):
 	else:
 		push_error("Unable to connect.")
 		set_process(false)
-
-
 
 func _process(_delta):
 	# Call this in `_process()` or `_physics_process()`.

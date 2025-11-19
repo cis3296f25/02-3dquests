@@ -10,7 +10,7 @@ class ServerManager:
         # campaign_id -> process info
         self.active_sessions: Dict[str, subprocess.Popen] = {}
 
-    async def start_server(self, campaign_id: str, jwt: str):
+    async def start_server(self, campaign_id: str, session_token: str):
         if campaign_id in self.active_sessions:
             print(f"Server for campaign {campaign_id} is already running")
             return self.active_sessions[campaign_id]
@@ -20,15 +20,16 @@ class ServerManager:
         # Assumes you have exported the server as `GodotServer.x86_64` in /servers/
         cmd = [
             "./GodotServer.x86_64",
-            "--campaign_id", campaign_id,
-            "--port", port,
-            "--token", jwt,
+            "--campaign-id", campaign_id,
+            "--session-token", session_token,
+            "--port", str(port),
             "--headless"
         ]
         process = subprocess.Popen(cmd)
         self.active_sessions[campaign_id] = {
             "process": process,
-            "port": port
+            "port": port,
+            "session_token": session_token
         }
         print(f"Started server for campaign {campaign_id} with PID {process.pid}")
         return process
