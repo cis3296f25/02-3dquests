@@ -69,6 +69,9 @@ layout_mode = 2
 [node name="PlaceModeLabel" type="Label" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
 layout_mode = 2
 
+[node name="SnapModeLabel" type="Label" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
 [node name="SaveButton" type="Button" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
 layout_mode = 2
 text = "Save"

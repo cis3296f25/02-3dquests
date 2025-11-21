@@ -3,6 +3,7 @@ class_name FreeLookCamera extends Camera3D
 @onready var root = get_parent()
 
 @export_range(0.0, 1.0) var sensitivity: float = 0.25
+@export var snap: bool = true
 
 # Mouse state
 var _mouse_position = Vector2(0.0, 0.0)
@@ -63,6 +64,10 @@ func _unhandled_input(event):
 			MOUSE_BUTTON_WHEEL_DOWN: # Decreases place distance
 				place_distance += 1
 				_update_place_distance()
+	
+	if Input.is_action_just_pressed("tab"):
+		snap = not snap
+		get_parent().get_node("UILayer/MainUIControl").update_snap_label(snap)
 
 # Updates mouselook and movement every frame
 func _process(delta):
@@ -144,7 +149,8 @@ func get_place_object_pos():
 		#box is placed in the position of the collision
 		#this solves the issue of the box always being a certain radius from the camera, making it easier to reliably place objects where expected
 		var point = raycast.get_collision_point()
-		point = point.round()
+		if snap:
+			point = point.round()
 		placer_obj.position = point
 	return placer_obj.global_transform.origin
 
