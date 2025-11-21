@@ -127,7 +127,7 @@ export default function AddMap() {
           Upload Image to Game
         </h1>
         <p className="text-gray-600 mb-8">
-          Select an image (JPEG, PNG, GIF) to upload. Max size: {MAX_FILE_SIZE_MB}MB.
+          Select an image (JPEG, or PNG) to upload. Max size: {MAX_FILE_SIZE_MB}MB.
         </p>
 
         <div className="mb-8">
