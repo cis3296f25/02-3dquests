@@ -92,14 +92,14 @@ func _add_collision_recursive(node: Node3D) -> void:
 # Gets infro from file, adds child
 func _load_object(pos: Vector3, rot: Vector3, path: String):
 	if load(path) != null:
-		var new_node = Node3D.new()
-		add_child(new_node)
-		var new_obj = load(path).instantiate()
-		new_node.add_child(new_obj)
-		new_node.global_position = pos
-		new_node.global_rotation = rot
+		#var new_node = Node3D.new()
+		#add_child(new_node)
+		#var new_obj = load(path).instantiate()
+		#new_node.add_child(new_obj)
+		#new_node.global_position = pos
+		#new_node.global_rotation = rot
+		parent.place_object(path, pos, rot)
 		save_system.store_properties(pos, rot, path)
-		_add_collision_recursive(new_node)
 
 func _save_button() -> void:
 	save_system.save()

@@ -36,9 +36,9 @@ script = ExtResource("1_onuh2")
 ghost_mesh = ExtResource("3_3pev5")
 
 [node name="PlacerCamera" parent="." instance=ExtResource("1_811nu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
 [node name="Floor" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("PlaneMesh_6hmdl")
@@ -94,6 +94,8 @@ offset_bottom = 202.0
 layout_mode = 2
 
 [node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
+
+[node name="SnapModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Save"
 
