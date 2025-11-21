@@ -45,7 +45,7 @@ func update_mode_label():
 
 func update_snap_label(snap_enabled: bool):
 	var snap_text = "ENABLED" if snap_enabled else "DISABLED"
-	snap_mode_label.text = "Snap: %s (TAB to toggle)" % snap_text
+	snap_mode_label.text = "Snap: %s (Press T to toggle)" % snap_text
 
 func _on_delete_mode_toggled(button_pressed: bool):
 	delete_mode_enabled = button_pressed

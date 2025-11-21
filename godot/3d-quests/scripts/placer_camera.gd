@@ -151,8 +151,33 @@ func get_place_object_pos():
 		var point = raycast.get_collision_point()
 		if snap:
 			point = point.round()
+		
+		var placer_mesh = placer_obj.get_child(0).get_child(0)
+		var lowest_local = 0
+		if placer_mesh is MeshInstance3D:
+			lowest_local = get_mesh_lowest_local(placer_mesh)
+		point.y = clamp(point.y, lowest_local * -1, 1000)
 		placer_obj.position = point
 	return placer_obj.global_transform.origin
+
+func get_mesh_lowest_local(mi: MeshInstance3D) -> float:
+	var mesh = mi.mesh
+	if mesh == null:
+		return 0.0
+	
+	var lowest = INF
+
+	for surface_idx in range(mesh.get_surface_count()):
+		var arrays := mesh.surface_get_arrays(surface_idx)
+		var verts = arrays[Mesh.ARRAY_VERTEX]
+
+		for v in verts:
+			if v.y < lowest:
+				lowest = v.y
+
+	# If mesh had no vertices:
+	return lowest if lowest != INF else 0.0
+
 
 # Converts the current mouse position to a point in 3D space
 func get_mouse_world_pos():
