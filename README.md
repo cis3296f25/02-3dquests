@@ -1,4 +1,4 @@
-# 3D-Quests - https://02-3dquests.vercel.app
+# 3D-Quests
 For TTRPG (table-top role-playing game) consumers who need to play online, 
 3D-Quests is a free-to-play 3D VTT (virtual table top) web app, unlike D&D 
 (Dungeons and Dragons) Beyond's Signal 3D VTT or Roll20's 2D VTT. Our product 
@@ -8,6 +8,7 @@ to the largest number of people.
 (Screenshot will be added later)
 
 # How to run locally (for Windows)
+- Download zip file from latest release (Sprint 4 Demo, release 1.5)
 - Have installed node v22.20.02
 - Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
 - Have godot installed: https://godotengine.org/download/windows/. (Extract .exe from zipped folder)
@@ -32,6 +33,8 @@ To run game with sign-in:
 - Contact 82chaudrys@gmail.com for .env file for database credentials to sign in
 - Click on http://localhost:3000/ which appears in terminal
 
+# How to play and test
+Read release notes for release 1.5
 
 # How to run local godot server on windows powershell
 ```
