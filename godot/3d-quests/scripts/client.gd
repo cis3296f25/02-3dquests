@@ -4,7 +4,7 @@ extends Node
 # Use "ws://localhost:9080" if testing with the minimal server example below.
 # `wss://` is used for secure connections,
 # while `ws://` is used for plain text (insecure) connections.
-@export var websocket_url = "ws://localhost:9080"
+@export var websocket_url = "ws://ec2-18-222-140-156.us-east-2.compute.amazonaws.com:9080"
 
 # Our WebSocketClient instance.
 var socket = WebSocketPeer.new()
