@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth" //need to refactor this into adding to header in middleware
+import { auth } from "@/lib/auth" 
 import { headers } from "next/headers"
 import Link from "next/link"
 
 export default async function CampaignHome() {
 
     const session = await auth.api.getSession({
-        headers: await headers() // you need to pass the headers object.
+        headers: await headers() 
     })
 
     if (!session) {
@@ -25,7 +25,7 @@ export default async function CampaignHome() {
 
     const gmCampaigns = await prisma.campaign.findMany({
         where: {
-            gmId: userId, // assuming each campaign has a gmId or ownerId field
+            gmId: userId, 
         },
     });
 

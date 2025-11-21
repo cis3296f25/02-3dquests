@@ -32,9 +32,38 @@ export async function GET(req: Request, { params }: { params: { campaignId: stri
   if (!activeSession) {
     return NextResponse.json({ active: false });
   }
+  const payload = {
+      userId,
+      ts: Date.now()
+  }
 
-  return NextResponse.json({
+  const user_jwt = generateJWT(payload);
+
+  const response =  NextResponse.json({
     campaignId: activeSession.campaignId,
     session_token: activeSession.awsSessionId,
+    user_jwt
   });
+  
+  return response
 }
+
+function generateJWT(payload: object) {
+    if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not defined")
+    }
+    const header = { alg: "HS256", typ: "JWT" }
+
+    const base64url = (obj: object) =>
+        Buffer.from(JSON.stringify(obj)).toString("base64url")
+
+    const unsignedToken = `${base64url(header)}.${base64url(payload)}`
+
+    const signature = crypto
+        .createHmac("sha256", JWT_SECRET)
+        .update(unsignedToken)
+        .digest("base64url")
+
+    return `${unsignedToken}.${signature}`
+}
+

@@ -5,87 +5,81 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("PRISMA_DATABASE_URL")
 }
 
 model ServerSession {
-  id           String           @id @default(cuid())
-  campaignId   String
-  awsSessionId String?
-  status       String           @default("active")
-  createdAt    DateTime         @default(now())
-  endedAt      DateTime?
+  id            String               @id @default(cuid())
+  campaignId    String
+  awsSessionId  String?
+  status        String               @default("active")
+  createdAt     DateTime             @default(now())
+  endedAt       DateTime?
   activePlayers Int
-  campaign     Campaign         @relation(fields: [campaignId], references: [id])
-  participants SessionParticipant[]
+  campaign      Campaign             @relation(fields: [campaignId], references: [id])
+  participants  SessionParticipant[]
 }
 
 model SessionParticipant {
-  id         String             @id @default(cuid())
-  sessionId  String
-  userId     Int
-  connected  Boolean            @default(true)
-  joinedAt   DateTime           @default(now())
-  lastHeart  DateTime? 
-  session    ServerSession      @relation(fields: [sessionId], references: [id])
-  user       User               @relation(fields: [userId], references: [id])
+  id        String        @id @default(cuid())
+  sessionId String
+  userId    Int
+  connected Boolean       @default(true)
+  joinedAt  DateTime      @default(now())
+  lastHeart DateTime?
+  session   ServerSession @relation(fields: [sessionId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
 }
 
-model Map {
-  id          String            @id @default(uuid())
-  name        String            @default("WorldMap")
-  description String            @default("The world map of your campaign")
+model CampaignMap {
+  id          String   @id @default(uuid())
+  name        String   @default("WorldMap")
+  description String   @default("The world map of your campaign")
   data        Json
   campaignId  String
-  campaign    Campaign          @relation(fields: [campaignId], references: [id])
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("maps")
 }
 
 model Campaign {
-  id          String            @id @default(uuid())
+  id          String           @id @default(uuid())
   name        String
   description String?
   gmId        Int
-  gm          User              @relation(fields: [gmId], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  gm          User             @relation(fields: [gmId], references: [id])
   members     CampaignMember[]
-  maps        Map[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
   sessions    ServerSession[]
-
+  maps        CampaignMap[]
 }
 
 model CampaignMember {
-  id          String    @id @default(uuid())
-  campaignId  String
-  userId      Int
-  role        Role      @default(PLAYER)
-  joinedAt    DateTime  @default(now())
-
-  campaign    Campaign  @relation(fields: [campaignId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
+  id         String   @id @default(uuid())
+  campaignId String
+  userId     Int
+  role       Role     @default(PLAYER)
+  joinedAt   DateTime @default(now())
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@unique([campaignId, userId])
 }
 
-
-enum Role {
-  GM
-  PLAYER
-}
-
 model User {
-  id            Int       @id @default(autoincrement())
-  createdAt     DateTime  @default(now())
-  email         String    @unique
+  id            Int                  @id @default(autoincrement())
+  createdAt     DateTime             @default(now())
+  email         String               @unique
   name          String?
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean              @default(false)
   image         String?
-  updatedAt     DateTime  @default(now()) @updatedAt
-  accounts      Account[]
-  sessions      Session[]
+  updatedAt     DateTime             @default(now()) @updatedAt
   campaigns     Campaign[]
   memberships   CampaignMember[]
   sessionPart   SessionParticipant[]
+  accounts      Account[]
+  sessions      Session[]
 
   @@map("user")
 }
@@ -132,4 +126,9 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+enum Role {
+  GM
+  PLAYER
 }

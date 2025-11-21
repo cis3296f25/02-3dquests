@@ -4,9 +4,9 @@ extends Node
 # Use "ws://localhost:9080" if testing with the minimal server example below.
 # `wss://` is used for secure connections,
 # while `ws://` is used for plain text (insecure) connections.
-var campaign_id: String = ""
+var campaignId: String = ""
 var session_token: String = ""
-var token: String = ""
+var userId: String = ""
 
 
 # Our WebSocketClient instance.
@@ -14,35 +14,49 @@ var socket = WebSocketPeer.new()
 
 var local_objects: Dictionary[int, Node3D] = {}
 
+
 func _ready():
+	get_session_token()
+	connect_to_server()
+	player_join()
+
+
+func get_session_token():
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
-	# Read the campaignId from the window object
-	if Engine.has_singleton("JavaScript"):
-		var js = Engine.get_singleton("JavaScript")
-		campaign_id = js.eval("window.GAME_CONFIG.campaignId")
-		print("Campaign ID:", campaign_id)
+	campaignId = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('campaignId') || ''")
+
+	http_request.request_completed.connect(self._http_connect_request_completed)
 	
-	http_request.request_completed.connect(self._http_request_completed)
-
-	var error = http_request.request("https://3dquests.com/api/get-active-session/" + campaign_id)
+	var url = "https://3dquests.com/api/sessions/get-active-session/" + campaignId
+	print(url)
+	
+	var error = http_request.request(url)
 	if error != OK:
-		push_error("An error occurred in the HTTP request.")
+		print("An error occurred in the HTTP request.")
 
-func _http_request_completed(result, response_code, headers, body):
+	#http_request.queue_free()
+
+func _http_connect_request_completed(result, response_code, headers, body):
 	if response_code != 200:
-		push_error("Failed to get active session: %s" % response_code)
+		print("Failed to get active session: %s" % response_code)
 		return
 	
 	var json = JSON.new()
 	var text = json.parse(body.get_string_from_utf8())
 	if text.error != OK:
-		push_error("Failed to parse JSON from session API")
+		print("Failed to parse JSON from session API")
+		return
+
+	if campaignId != text.result.campaignId:
+		print("Wrong campaign id")
 		return
 	
 	session_token = text.result.session_token
-	
-	var websocket_url = "wss://game.3dquests.com/campaign?token=%s" % [session_token]
+	userId = text.result.user_jwt	
+
+func connect_to_server():
+	var websocket_url = "wss://game.3dquests.com/server/" + campaignId + "/" + session_token
 
 	# Initiate connection to the given URL.
 	var err = socket.connect_to_url(websocket_url)
@@ -51,8 +65,67 @@ func _http_request_completed(result, response_code, headers, body):
 		# Wait for the socket to connect.
 		await get_tree().create_timer(2).timeout
 	else:
-		push_error("Unable to connect.")
+		print("Unable to connect.")
 		set_process(false)
+
+func player_join():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_join_request_completed)
+
+	var data = {
+		"session_token": session_token,
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % userId]
+
+	var error = http_request.request("https://game.3dquests.com/join", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_join_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+
+func player_leave():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_join_request_completed)
+	var data = {
+		"campaignId": campaignId,
+		"session_token": session_token,
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % userId]
+
+	var error = http_request.request("https://game.3dquests.com/leave", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_leave_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+
 
 func _process(_delta):
 	# Call this in `_process()` or `_physics_process()`.
@@ -91,6 +164,7 @@ func _process(_delta):
 	elif state == WebSocketPeer.STATE_CLOSED:
 		# The code will be `-1` if the disconnection was not properly notified by the remote peer.
 		var code = socket.get_close_code()
+		player_leave()
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
 		set_process(false) # Stop processing.
 		

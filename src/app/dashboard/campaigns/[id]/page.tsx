@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import Image from "next/image"
+import StartSessionButton from "@/components/ui/start-session-button";
 
 interface CampaignPageProps {
   params: { id: string }; // dynamic param from URL
@@ -31,22 +31,9 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
         ))}
       </ul>
 
-      <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden">
-        <iframe
-          src="/mapmaker/index.html"
-          className="w-[90%] h-[90%] border-2 border-gray-700 rounded-xl"
-        />
-      </div>
+      <StartSessionButton campaignId={id} />
 
       <h2 className="mt-4 font-semibold">Maps:</h2>
-      <ul>
-        {campaign.maps.map((map) => (
-          <li key={map.id}>
-            <p>{map.name}</p>
-            <Image src={map.link} alt={map.name} width="500" height="500" className="mt-2 w-64" />
-          </li>
-        ))}
-      </ul>
     </div>
     </div>
   );

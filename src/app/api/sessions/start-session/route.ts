@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers"
@@ -21,7 +20,6 @@ export async function POST(req: Request) {
         }
         const payload = {
             userId,
-            campaignId,
             ts: Date.now()
         }
 
@@ -34,37 +32,13 @@ export async function POST(req: Request) {
                 "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
-                campaignId: campaignId  // <- include this
+                campaignId: campaignId 
             })
         })
 
         const serverResponse = await serverData.json();
 
-        const existingSession = await prisma.serverSession.findFirst({
-            where: {
-                campaignId,
-                status: "active"
-            },
-        });
-
-        if (existingSession) {
-            return NextResponse.json(
-                { error: "A session is already active for this campaign", session: existingSession },
-                { status: 201 }
-            );
-        }
-
-        const newSession = await prisma.serverSession.create({
-            data: {
-                campaignId,
-                awsSessionId: serverResponse.session_token,     
-                activePlayers: serverResponse.activePlayers || 1,
-                createdAt: new Date(),
-                status: "active", 
-            },
-        });
-
-        return NextResponse.json(newSession, { status: 201 });
+        return NextResponse.json(serverResponse, { status: 201 });
     } catch (error: any) {
         console.error(error);
         return NextResponse.json(

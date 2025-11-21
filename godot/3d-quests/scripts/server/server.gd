@@ -16,6 +16,8 @@ var port = ""
 var campaign_id = ""
 var session_token = ""
 
+var last_activity = Time.get_unix_time_from_system()
+
 func _ready():
 	var args = OS.get_cmdline_args()
 	
@@ -38,6 +40,10 @@ func _ready():
 
 
 func _process(_delta):
+	if Time.get_unix_time_from_system() - last_activity > 3600:
+		print("Idle 1h – quitting.")
+		get_tree().quit()
+
 	while _tcp_server.is_connection_available():
 		last_peer_id += 1
 		print("+ Peer %d connected." % last_peer_id)
@@ -121,6 +127,7 @@ func handle_place(peer_id: int, data: Dictionary):
 		"position": data.position,
 		"rotation": data.rotation
 	})
+	last_activity = Time.get_unix_time_from_system()
 	
 
 func handle_update(peer_id: int, data: Dictionary):
@@ -140,6 +147,7 @@ func handle_update(peer_id: int, data: Dictionary):
 		"position": data.position,
 		"rotation": data.rotation
 	})
+	last_activity = Time.get_unix_time_from_system()
 
 func handle_delete(peer_id: int, data: Dictionary):
 	var obj_id = int(data.obj_id)
@@ -155,6 +163,7 @@ func handle_delete(peer_id: int, data: Dictionary):
 	})
 	
 	print("Deleted object %d" % data.obj_id)
+	last_activity = Time.get_unix_time_from_system()
 
 func handle_pickup(peer_id: int, data: Dictionary):
 	var obj_id = int(data.obj_id)
@@ -177,6 +186,7 @@ func handle_pickup(peer_id: int, data: Dictionary):
 		"obj_id": obj_id,
 		"owner_id": peer_id
 	})
+	last_activity = Time.get_unix_time_from_system()
 	
 func handle_drop(peer_id: int, data: Dictionary):
 	var obj_id = int(data.obj_id)
@@ -202,6 +212,7 @@ func handle_drop(peer_id: int, data: Dictionary):
 		"position": data.position,
 		"rotation": data.rotation
 	})
+	last_activity = Time.get_unix_time_from_system()
 	
 func send_world_state(peer_id):
 	var peer = _peers[peer_id]
@@ -214,6 +225,7 @@ func send_world_state(peer_id):
 		"type": "world_state_update",
 		"objects": obj_list
 	}))
+	last_activity = Time.get_unix_time_from_system()
 
 	
 	

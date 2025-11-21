@@ -2,7 +2,10 @@ interface PlayPageProps {
   params: { id: string };
 }
 
-export default function PlayPage( { params } : PlayPageProps) {
+export default async function PlayPage( { params } : PlayPageProps) {
+  
+  const param = await params
+  const id = param.id
   return (
     <>
       <div id="game-container"></div>
@@ -10,12 +13,26 @@ export default function PlayPage( { params } : PlayPageProps) {
         dangerouslySetInnerHTML={{
           __html: `
             window.GAME_CONFIG = {
-              campaignId: "${params.id}",
+              campaignId: "${id}",
             };
           `,
         }}
       />
-      <script src="/godot-export/your_game.js"></script>
+      <iframe 
+      src={`/mapmaker/3DQuestsClient.html?campaignId=${params.id}`}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        border: "none",
+        margin: 0,
+        padding: 0,
+        overflow: "hidden",
+      }}
+      allowFullScreen></iframe>
+
     </>
   );
 }
