@@ -3,7 +3,7 @@ extends Node3D
 @onready var parent = get_parent()
 @onready var camera: Camera3D = get_parent().get_node("PlacerCamera")
 @onready var object: Node3D = $GhostObject
-@onready var main_ui = get_parent().get_node("UILayer/MainUIControl")
+@onready var main_ui = get_parent().get_node("UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel")
 @onready var object_menu = get_parent().get_node("UILayer/OpenMenuControl")
 @onready var object_menu_window = get_parent().get_node("UILayer/OpenMenuControl/OpenMenuWindow")
 @onready var save_system = get_parent().get_node("SaveSystem")
@@ -20,6 +20,7 @@ func _ready() -> void:
 	main_ui.save_button_pressed.connect(_save_button)
 	main_ui.load_button_pressed.connect(_load_button)
 	main_ui.open_menu_pressed.connect(_open_menu)
+	main_ui.close_button_pressed.connect(_close_button)
 	object_menu.object_selected.connect(_select_object)
 	save_system.load_obj.connect(_load_object)
 	
@@ -111,3 +112,6 @@ func _open_menu():
 	
 func _select_object(scene: PackedScene):
 	object.set_mesh(scene)
+
+func _close_button() -> void:
+	$"../UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel".hide()
