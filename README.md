@@ -8,6 +8,7 @@ to the largest number of people.
 (Screenshot will be added later)
 
 # How to run (for Windows)
+- Dowqnload the lastest release (Sprint 4 Demo, 1.5)
 - Have installed node v22.20.02
 - Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
 - Have godot installed: https://godotengine.org/download/windows/. (Extract .exe from zipped folder)
@@ -39,25 +40,7 @@ To run game with sign-in (sign in is under construction):
 ```
 
 # How to play
-SWITCHING BETWEEN MODES 
-
-1. By default, the game opens in ‘Edit’ mode as indicated in the top left corner of the 
-screen, saying “Mode: Edit (Press P to toggle)”. 
-2. Press P on the keyboard. The top left corner should now say “Mode: Placement 
-(Press P to toggle)” to indicate that the game is in ‘Placement’ mode. 
-
-OPENING THE ASSETS MENU 
-
-1. Press P again to set the game to ‘Edit’ mode. 
-2. Click the ‘Assets Menu’ button in the top left corner. 
-3. A menu with different asset names should appear. Click any of the buttons to 
-select an asset. 
-4. Press P again to set the game to ‘Placement’ mode. 
-5. Hover the cursor over the map. The ghost object should have changed to the 
-selected asset. 
-
-PLACING OBJECTS 
-1. Make sure that the game is in ‘Placement’ mode.
+Read 1.5 realease notes.
 
 # How to run (for MacOS)
 Coming Soon...
