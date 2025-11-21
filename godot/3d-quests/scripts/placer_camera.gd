@@ -30,7 +30,7 @@ var placer_obj: Node3D
 
 #parent node
 @onready var camera_manager = get_parent().get_node("CameraTestManager")
-@onready var ui = get_parent().get_node("UILayer/MainUIControl")  # adjust path
+@onready var ui = get_parent().get_node("UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel")  # adjust path
 
 func _unhandled_input(event):
 	raycast.force_raycast_update()

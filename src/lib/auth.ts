@@ -22,6 +22,8 @@ export const auth = betterAuth({
     trustedOrigins: [
         "http://localhost:3000",
         "https://02-3dquests.vercel.app",
+        "https://3dquests.com",
+        "https://www.3dquests.com"
     ],
     advanced: {
         database: {
