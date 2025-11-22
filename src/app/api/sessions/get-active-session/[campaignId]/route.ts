@@ -6,6 +6,9 @@ import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET
 
+export const dynamic = "force-dynamic";
+
+
 export async function GET(req: NextRequest, context: { params: { campaignId: string } }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
