@@ -17,7 +17,7 @@ export default function StartSessionButton({ campaignId }: { campaignId: string 
       return;
     }
 
-    router.push(`/mapmaker/3DQuestsClient.html?CampaignId=${campaignId}`);
+    router.push(`/mapmaker/3DQuestsClient.html?campaignId=${campaignId}`);
   }
 
   return (

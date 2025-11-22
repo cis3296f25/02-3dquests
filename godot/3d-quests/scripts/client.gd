@@ -6,19 +6,19 @@ extends Node
 # while `ws://` is used for plain text (insecure) connections.
 var campaignId: String = ""
 var session_token: String = ""
-var userId: String = ""
+var userId: String = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIn0.zBpjSIAOZTiUARrOkvBCk86jcBP2hbOXpJyfbPdnT8o"
 
 
 # Our WebSocketClient instance.
 var socket = WebSocketPeer.new()
+var ws_connected := false
 
 var local_objects: Dictionary[int, Node3D] = {}
 
 
 func _ready():
 	get_session_token()
-	connect_to_server()
-	player_join()
+	
 
 
 func get_session_token():
@@ -33,8 +33,10 @@ func get_session_token():
 	}
 
 	var json = JSON.stringify(data)
+
+	var url = "https://game.3dquests.com/get-active-session"
 	
-	var url = "https://3dquests.com/api/sessions/get-active-session/"
+	#var url = "https://3dquests.com/api/sessions/get-active-session"
 	print(url)
 	
 	var error = http_request.request(url, [], HTTPClient.METHOD_POST, json)
@@ -49,17 +51,23 @@ func _http_connect_request_completed(result, response_code, headers, body):
 		return
 	
 	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
+	var err = json.parse(body.get_string_from_utf8())
+	if err != OK:
 		print("Failed to parse JSON from session API")
 		return
 
-	if campaignId != text.result.campaignId:
-		print("Wrong campaign id")
-		return
+	var res = json.get_data()
+
+	#if campaignId != res["campaignId"]:
+	#	print("Wrong campaign id")
+	#	return
 	
-	session_token = text.result.session_token
-	userId = text.result.user_jwt	
+	session_token = res["session_token"]
+	print("Session token: %s" % session_token)
+	#userId = res["user_jwt"]
+
+	connect_to_server()
+	player_join()	
 
 func connect_to_server():
 	var websocket_url = "wss://game.3dquests.com/server/" + campaignId + "/" + session_token
@@ -69,7 +77,10 @@ func connect_to_server():
 	if err == OK:
 		print("Connecting to %s..." % websocket_url)
 		# Wait for the socket to connect.
-		await get_tree().create_timer(2).timeout
+		while socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
+			await get_tree().process_frame  # wait one frame
+		print("WebSocket connected!")
+		ws_connected = true
 	else:
 		print("Unable to connect.")
 		set_process(false)
@@ -134,13 +145,14 @@ func _http_leave_request_completed(result, response_code, headers, body):
 
 
 func _process(_delta):
+	if not ws_connected:
+		return
 	# Call this in `_process()` or `_physics_process()`.
 	# Data transfer and state updates will only happen when calling this function.
 	socket.poll()
 
 	# get_ready_state() tells you what state the socket is in.
-	var state = socket.get_ready_state()
-
+	var state = socket.get_ready_state()	
 	# `WebSocketPeer.STATE_OPEN` means the socket is connected and ready
 	# to send and receive data.
 	if state == WebSocketPeer.STATE_OPEN:
@@ -152,7 +164,7 @@ func _process(_delta):
 					var packet_text = packet.get_string_from_utf8()
 					var error = json.parse(packet_text)
 					if error == OK:
-						var data_recieved = json.data
+						var data_recieved = json.get_data()
 						print(data_recieved)
 						if typeof(data_recieved) == TYPE_DICTIONARY:
 							handle_data_recieved(data_recieved)
