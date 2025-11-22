@@ -6,14 +6,14 @@ import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET
 
-export async function GET(req: Request, { params }: { params: { campaignId: string } }) {
+export async function GET(req: Request, context: { params: { campaignId: string } }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = parseInt(session.user.id);
-  const { campaignId } = params;
+  const { campaignId } = context.params;
 
   const isMember = await prisma.campaignMember.findFirst({ where: { campaignId, userId } });
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
