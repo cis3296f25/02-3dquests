@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error(error);
         return NextResponse.json(
-            { error: "Failed to create campaign" },
+            { error: "Failed to create campaign" + error.message },
             { status: 500 }
         );
     }
