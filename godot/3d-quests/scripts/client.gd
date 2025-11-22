@@ -27,11 +27,17 @@ func get_session_token():
 	campaignId = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('campaignId') || ''")
 
 	http_request.request_completed.connect(self._http_connect_request_completed)
+
+	var data = {
+		"campaignId": campaignId,
+	}
+
+	var json = JSON.stringify(data)
 	
-	var url = "https://3dquests.com/api/sessions/get-active-session/" + campaignId
+	var url = "https://3dquests.com/api/sessions/get-active-session/"
 	print(url)
 	
-	var error = http_request.request(url)
+	var error = http_request.request(url, [], HTTPClient.METHOD_POST, json)
 	if error != OK:
 		print("An error occurred in the HTTP request.")
 

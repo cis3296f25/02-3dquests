@@ -18,6 +18,7 @@ export default async function PlayPage( { params } : PlayPageProps) {
           `,
         }}
       />
+      
       <iframe 
       src={`/mapmaker/3DQuestsClient.html?campaignId=${id}`}
       style={{
