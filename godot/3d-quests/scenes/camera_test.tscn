@@ -80,7 +80,7 @@ text = "Edit"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/EditMenu"]
 oversampling_override = 1.0
-size = Vector2i(114, 210)
+size = Vector2i(114, 233)
 visible = true
 script = ExtResource("6_lahmr")
 
@@ -88,15 +88,16 @@ script = ExtResource("6_lahmr")
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 110.0
-offset_bottom = 206.0
+offset_bottom = 229.0
 
 [node name="PlaceModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-
 [node name="SnapModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+text = "Save"
+
+[node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Save"
 

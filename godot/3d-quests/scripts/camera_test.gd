@@ -41,22 +41,6 @@ func _on_mode_changed(enabled: bool) -> void:
 #gets info from ghost obj, adds child
 func place_object():
 	var props = object.get_properties()
-	#var new_obj: Node3D = props["mesh"].instantiate()
-	#props_container.add_child(new_obj)
-	#new_obj.global_position = props["position"]
-	#new_obj.global_rotation = props["rotation"]
-	
-	#_add_collision_recursive(new_obj)
-	
-	#new_obj.add_to_group("Pickable")
-	#for c in new_obj.get_children():
-		# enable collisions (if present) and optionally mark children pickable so raycast hits them
-	#	if c.has_node("CollisionShape3D"):
-	#		var col = c.get_node("CollisionShape3D")
-	#		if col:
-	#			col.disabled = false
-		# Optionally add children to group - but your get_object_under_cursor walks up anyway
-	#	c.add_to_group("Pickable")
 	parent.place_object(
 		props["mesh"].resource_path,
 		props["position"],
@@ -92,12 +76,6 @@ func _add_collision_recursive(node: Node3D) -> void:
 # Gets infro from file, adds child
 func _load_object(pos: Vector3, rot: Vector3, path: String):
 	if load(path) != null:
-		#var new_node = Node3D.new()
-		#add_child(new_node)
-		#var new_obj = load(path).instantiate()
-		#new_node.add_child(new_obj)
-		#new_node.global_position = pos
-		#new_node.global_rotation = rot
 		parent.place_object(path, pos, rot)
 		save_system.store_properties(pos, rot, path)
 

@@ -67,7 +67,7 @@ func _unhandled_input(event):
 	
 	if Input.is_action_just_pressed("tab"):
 		snap = not snap
-		get_parent().get_node("UILayer/MainUIControl").update_snap_label(snap)
+		ui.update_snap_label(snap)
 
 # Updates mouselook and movement every frame
 func _process(delta):
