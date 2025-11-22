@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET
 
-export async function GET(req: Request, context: { params: { campaignId: string } }) {
+export async function GET(req: NextRequest, context: { params: { campaignId: string } }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
