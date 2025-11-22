@@ -33,20 +33,10 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
 
       <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden">
         <iframe
-          src="/mapmaker/index.html"
+          src="/mapmaker/3DQuestsClient.html"
           className="w-[90%] h-[90%] border-2 border-gray-700 rounded-xl"
         />
       </div>
-
-      <h2 className="mt-4 font-semibold">Maps:</h2>
-      <ul>
-        {campaign.maps.map((map) => (
-          <li key={map.id}>
-            <p>{map.name}</p>
-            <Image src={map.link} alt={map.name} width="500" height="500" className="mt-2 w-64" />
-          </li>
-        ))}
-      </ul>
     </div>
     </div>
   );
