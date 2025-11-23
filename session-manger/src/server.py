@@ -37,7 +37,7 @@ origins = [
     "http://localhost:3000",
     "https://3dquests.com",
     "https://www.3dquests.com",
-    "https://02-3dquests.com"
+    "https://02-3dquests.vercel.app"
 ]
 
 
