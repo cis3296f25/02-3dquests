@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import StartSessionButton from "@/components/ui/start-session-button";
+import AddPlayerForm from "@/components/ui/add-player-form";
 
 interface CampaignPageProps {
   params: { id: string }; // dynamic param from URL
@@ -30,6 +31,7 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
           </li>
         ))}
       </ul>
+      <AddPlayerForm campaignId={id} />
 
       <StartSessionButton campaignId={id} />
 
