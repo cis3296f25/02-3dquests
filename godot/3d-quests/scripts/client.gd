@@ -18,6 +18,11 @@ var first_packet_sent := false
 
 
 func _ready():
+	if OS.is_debug_build():
+		print("DEBUG MODE!!!")
+	else:
+		print("RELEASE MODE.")
+
 	get_session_token()
 	
 

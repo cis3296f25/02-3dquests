@@ -35,8 +35,7 @@ func load_asset_json() -> Dictionary:
 		push_error("asset_list.json not found!")
 		return {}
 	var text = FileAccess.get_file_as_string(file_path)
-	var json = JSON.new()
-	var parsed = json.parse_string(text)
+	var parsed = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("Invalid asset_list.json format")
 		return {}
