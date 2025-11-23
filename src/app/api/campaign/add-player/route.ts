@@ -1,36 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // your prisma client
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers"
 
 export async function POST(req: NextRequest) {
-  const { campaignId, email } = await req.json();
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  if (!email) {
-    return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 });
-  }
+    const { campaignId, email } = await req.json();
 
-  // 1. Check if user exists
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    return NextResponse.json({ success: false, message: "No registered user with that email" }, { status: 404 });
-  }
+    if (!email) {
+        return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 });
+    }
 
-  // 2. Check if already in campaign
-  const existing = await prisma.campaignMember.findUnique({
-    where: { campaignId_userId: { campaignId: campaignId, userId: user.id } },
-  });
+    // 1. Check if user exists
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+        return NextResponse.json({ success: false, message: "No registered user with that email" }, { status: 404 });
+    }
 
-  if (existing) {
-    return NextResponse.json({ success: false, message: "User already in campaign" }, { status: 409 });
-  }
+    // 2. Check if already in campaign
+    const existing = await prisma.campaignMember.findUnique({
+        where: { campaignId_userId: { campaignId: campaignId, userId: user.id } },
+    });
 
-  // 3. Add to campaign
-  await prisma.campaignMember.create({
-    data: {
-      campaignId: campaignId,
-      userId: user.id,
-      role: "PLAYER",
-    },
-  });
+    if (existing) {
+        return NextResponse.json({ success: false, message: "User already in campaign" }, { status: 409 });
+    }
 
-  return NextResponse.json({ success: true, message: "User added to campaign" });
+    // 3. Add to campaign
+    await prisma.campaignMember.create({
+        data: {
+            campaignId: campaignId,
+            userId: user.id,
+            role: "PLAYER",
+        },
+    });
+
+    return NextResponse.json({ success: true, message: "User added to campaign" });
 }
