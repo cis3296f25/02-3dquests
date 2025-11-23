@@ -14,6 +14,7 @@ var socket = WebSocketPeer.new()
 var ws_connected := false
 
 var local_objects: Dictionary[int, Node3D] = {}
+var first_packet_sent := false
 
 
 func _ready():
@@ -156,6 +157,13 @@ func _process(_delta):
 	# `WebSocketPeer.STATE_OPEN` means the socket is connected and ready
 	# to send and receive data.
 	if state == WebSocketPeer.STATE_OPEN:
+		if not first_packet_sent:
+			var data = {
+				"type": "hello",
+				"userId": userId
+			}
+			socket.send_text(JSON.stringify(data))
+			first_packet_sent = true
 		while socket.get_available_packet_count():
 			var packet = socket.get_packet()
 			if socket.was_string_packet():

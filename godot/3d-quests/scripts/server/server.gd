@@ -4,12 +4,12 @@ extends Node
 var _tcp_server = TCPServer.new()
 
 # Our connected peers list.
-var _peers: Dictionary[int, WebSocketPeer] = {}
+var _peers: Dictionary[String, WebSocketPeer] = {}
 
 var last_peer_id := 0
 
 # Authoritative object storage
-var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
+var objects: Dictionary[String, Dictionary] = {}  # object_id -> {mesh, position, rotation}
 var last_object_id := 0
 
 var port = ""
@@ -46,10 +46,10 @@ func _process(_delta):
 
 	while _tcp_server.is_connection_available():
 		last_peer_id += 1
-		print("+ Peer %d connected." % last_peer_id)
 		var ws = WebSocketPeer.new()
 		ws.accept_stream(_tcp_server.take_connection())
-		_peers[last_peer_id] = ws
+		print("+Peer %d connected." % last_peer_id)
+		_peers[str(last_peer_id)] = ws
 
 	# Iterate over all connected peers using "keys()" so we can erase in the loop
 	for peer_id in _peers.keys():
@@ -81,7 +81,7 @@ func _process(_delta):
 					# Echo the packet back.
 					# peer.send_text(packet_text)
 				else:
-					print("< Got binary data from peer %d: %d ... echoing" % [peer_id, packet.size()])
+					print("< Got binary data from peer %s: %d ... echoing" % [peer_id, packet.size()])
 					# Echo the packet back.
 					# peer.send(packet)
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
@@ -92,9 +92,9 @@ func _process(_delta):
 			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
 
 # To make sure no more than one person can move an object at a time
-var object_owners: Dictionary[int, int] = {}
+var object_owners: Dictionary[String, String] = {}
 
-func handle_packet(peer_id: int, data: Dictionary):
+func handle_packet(peer_id: String, data: Dictionary):
 	match data.type:
 		"place_object":
 			handle_place(peer_id, data)
@@ -106,18 +106,31 @@ func handle_packet(peer_id: int, data: Dictionary):
 			handle_pickup(peer_id, data)
 		"drop_object":
 			handle_drop(peer_id, data)
+		"hello":
+			handle_first_contact(peer_id, data)
 		_:
 			print("Unknown packet type: ", data.type)
 
-func handle_place(peer_id: int, data: Dictionary):
+func handle_first_contact(peer_id: String, data: Dictionary):
+	var user_id = str(data.userId)
+	var old_peer = _peers.get(user_id, null)
+	if old_peer != null:
+		print("User %s reconnected, closing old connection." % user_id)
+		old_peer.close(1000, "Reconnected")
+
+	_peers[user_id] = _peers[peer_id]
+	_peers.erase(peer_id)
+	print("Peer %s identified as user %s" % [peer_id, user_id])
+
+func handle_place(peer_id: String, data: Dictionary):
 	last_object_id += 1
-	var obj_id = last_object_id
+	var obj_id = str(last_object_id)
 	objects[obj_id] = {
 		"mesh": data.mesh,
 		"position": data.position,
 		"rotation": data.rotation
 	}
-	print("Placed object %d by peer %d" % [obj_id, peer_id])
+	print("Placed object %s by peer %s" % [obj_id, peer_id])
 
 	# Broadcast authoritative object info
 	broadcast({
@@ -130,10 +143,10 @@ func handle_place(peer_id: int, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 	
 
-func handle_update(peer_id: int, data: Dictionary):
-	var obj_id = int(data.obj_id)
+func handle_update(peer_id: String, data: Dictionary):
+	var obj_id = data.obj_id
 	if not objects.has(data.obj_id):
-		print("Peer %d tried to update missing object %d" % [peer_id, data.obj_id])
+		print("Peer %s tried to update missing object %s" % [peer_id, data.obj_id])
 		return
 	
 	var obj = objects[obj_id]
@@ -149,10 +162,10 @@ func handle_update(peer_id: int, data: Dictionary):
 	})
 	last_activity = Time.get_unix_time_from_system()
 
-func handle_delete(peer_id: int, data: Dictionary):
-	var obj_id = int(data.obj_id)
+func handle_delete(peer_id: String, data: Dictionary):
+	var obj_id = data.obj_id
 	if not objects.has(obj_id):
-		print("Peer %d tried to delete missing object %d" % [peer_id, data.obj_id])
+		print("Peer %s tried to delete missing object %s" % [peer_id, data.obj_id])
 		return
 	
 	objects.erase(obj_id)
@@ -162,16 +175,16 @@ func handle_delete(peer_id: int, data: Dictionary):
 		"obj_id": obj_id
 	})
 	
-	print("Deleted object %d" % data.obj_id)
+	print("Deleted object %s" % data.obj_id)
 	last_activity = Time.get_unix_time_from_system()
 
-func handle_pickup(peer_id: int, data: Dictionary):
-	var obj_id = int(data.obj_id)
+func handle_pickup(peer_id: String, data: Dictionary):
+	var obj_id = data.obj_id
 	if not objects.has(obj_id):
-		print("Peer %d tried to pick up missing object %d" % [peer_id, obj_id])
+		print("Peer %s tried to pick up missing object %s" % [peer_id, obj_id])
 	
 	if object_owners.has(obj_id):
-		print("Peer %d tried to pick up object %d but its already held by %d" % [peer_id, obj_id, object_owners[obj_id]])
+		print("Peer %s tried to pick up object %s but its already held by %s" % [peer_id, obj_id, object_owners[obj_id]])
 		_peers[peer_id].send_text(JSON.stringify({
 			"type": "pickup_denied",
 			"obj_id": obj_id
@@ -179,7 +192,7 @@ func handle_pickup(peer_id: int, data: Dictionary):
 		return
 	
 	object_owners[obj_id] = peer_id
-	print("Peer %d picked up object %d" % [peer_id, obj_id])
+	print("Peer %s picked up object %s" % [peer_id, obj_id])
 
 	broadcast({
 		"type": "object_picked_up",
@@ -188,18 +201,18 @@ func handle_pickup(peer_id: int, data: Dictionary):
 	})
 	last_activity = Time.get_unix_time_from_system()
 	
-func handle_drop(peer_id: int, data: Dictionary):
-	var obj_id = int(data.obj_id)
+func handle_drop(peer_id: String, data: Dictionary):
+	var obj_id = data.obj_id
 	if not object_owners.has(obj_id):
-		print("Peer %d tried to drop object %d, but it’s not held" % [peer_id, obj_id])
+		print("Peer %s tried to drop object %s, but it’s not held" % [peer_id, obj_id])
 		return
 
 	if object_owners[obj_id] != peer_id:
-		print("Peer %d tried to drop object %d they don’t own" % [peer_id, obj_id])
+		print("Peer %s tried to drop object %s they don’t own" % [peer_id, obj_id])
 		return
 		
 	object_owners.erase(obj_id)
-	print("Peer %d dropped object %d" % [peer_id, obj_id])
+	print("Peer %s dropped object %s" % [peer_id, obj_id])
 	
 	if objects.has(obj_id):
 			objects[obj_id].position = data.position
