@@ -9,6 +9,7 @@ signal close_button_pressed
 
 @onready var save_button = $VBoxContainer/SaveButton
 @onready var load_button = $VBoxContainer/LoadButton
+@onready var snap_mode_label = $VBoxContainer/SnapModeLabel
 @onready var open_menu = $VBoxContainer/OpenMenu
 @onready var place_mode_label = $VBoxContainer/PlaceModeLabel
 @onready var delete_obj_check = $VBoxContainer/DeleteObjMode
