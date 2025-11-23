@@ -26,10 +26,7 @@ export async function POST(req: Request) {
       where: {
         campaignId,
         status: "active",
-      },
-      include: {
-        participants: true, // optional if you want active player info
-      },
+      }
     });
 
     if (!activeSession) {
