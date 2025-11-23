@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 manager = ServerManager()
 
+
 origins = [
     "http://localhost:3000",
     "https://3dquests.com",
