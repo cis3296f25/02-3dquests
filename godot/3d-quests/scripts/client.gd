@@ -6,7 +6,7 @@ extends Node
 # while `ws://` is used for plain text (insecure) connections.
 var campaignId: String = ""
 var session_token: String = ""
-var userId: String = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIn0.zBpjSIAOZTiUARrOkvBCk86jcBP2hbOXpJyfbPdnT8o"
+var userId: String = ""
 
 
 # Our WebSocketClient instance.
@@ -35,9 +35,9 @@ func get_session_token():
 
 	var json = JSON.stringify(data)
 
-	var url = "https://game.3dquests.com/get-active-session"
+	#var url = "https://game.3dquests.com/get-active-session"
 	
-	#var url = "https://3dquests.com/api/sessions/get-active-session"
+	var url = "https://3dquests.com/api/sessions/get-active-session"
 	print(url)
 	
 	var error = http_request.request(url, [], HTTPClient.METHOD_POST, json)
@@ -59,13 +59,13 @@ func _http_connect_request_completed(result, response_code, headers, body):
 
 	var res = json.get_data()
 
-	#if campaignId != res["campaignId"]:
-	#	print("Wrong campaign id")
-	#	return
+	if campaignId != res["campaignId"]:
+		print("Wrong campaign id")
+		return
 	
 	session_token = res["session_token"]
 	print("Session token: %s" % session_token)
-	#userId = res["user_jwt"]
+	userId = res["user_jwt"]
 
 	connect_to_server()
 	player_join()	
