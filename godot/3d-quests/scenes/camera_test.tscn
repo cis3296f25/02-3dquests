@@ -1,12 +1,13 @@
-[gd_scene load_steps=13 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=15 format=3 uid="uid://dwcpw05no3g37"]
 
 [ext_resource type="Script" uid="uid://cmbbtr1i411hs" path="res://scripts/client.gd" id="1_16sdf"]
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
 [ext_resource type="Script" uid="uid://ce8ktxqnbf673" path="res://scripts/camera_test.gd" id="1_onuh2"]
 [ext_resource type="PackedScene" uid="uid://brcua0gc1h8om" path="res://scenes/ghost_object.tscn" id="2_6hmdl"]
 [ext_resource type="PackedScene" uid="uid://d4mniij36i4ac" path="res://assets/meshes/sphere.tscn" id="3_3pev5"]
-[ext_resource type="Script" uid="uid://de4pl8uthx4hs" path="res://scripts/UI.gd" id="5_br5go"]
+[ext_resource type="Script" uid="uid://1eviy8sp3fdw" path="res://scenes/new_ui_control.gd" id="6_16sdf"]
 [ext_resource type="Script" uid="uid://do0kulb71j5y3" path="res://scripts/open_menu_control.gd" id="6_gtwgr"]
+[ext_resource type="Script" uid="uid://dewq1fg415okm" path="res://scripts/edit_popup_panel.gd" id="6_lahmr"]
 [ext_resource type="Script" uid="uid://cxe7owfrxbs2n" path="res://scripts/save_and_load.gd" id="6_tt3eh"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l4yd"]
@@ -22,6 +23,9 @@ size = Vector2(150, 150)
 background_mode = 1
 background_color = Color(0, 0.8352941, 1, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_16sdf"]
+bg_color = Color(0.7647059, 0, 0, 1)
+
 [node name="MainClient" type="Node3D"]
 script = ExtResource("1_16sdf")
 
@@ -32,9 +36,9 @@ script = ExtResource("1_onuh2")
 ghost_mesh = ExtResource("3_3pev5")
 
 [node name="PlacerCamera" parent="." instance=ExtResource("1_811nu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
 [node name="Floor" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("PlaneMesh_6hmdl")
@@ -51,39 +55,175 @@ shadow_enabled = true
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
-[node name="MainUIControl" type="Control" parent="UILayer"]
+[node name="NewUIControl" type="Control" parent="UILayer"]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("5_br5go")
+script = ExtResource("6_16sdf")
 
-[node name="PanelContainer" type="PanelContainer" parent="UILayer/MainUIControl"]
+[node name="MenuBar" type="MenuBar" parent="UILayer/NewUIControl"]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 3.0
+offset_top = 2.0
+offset_right = 415.0
+offset_bottom = 42.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_16sdf")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MainUIControl/PanelContainer"]
+[node name="EditMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
+layout_mode = 0
+offset_left = -21.0
+offset_top = 2.0
+offset_right = 93.0
+offset_bottom = 37.0
+text = "Edit"
+
+[node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/EditMenu"]
+oversampling_override = 1.0
+size = Vector2i(114, 210)
+visible = true
+script = ExtResource("6_lahmr")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 110.0
+offset_bottom = 206.0
+
+[node name="PlaceModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="PlaceModeLabel" type="Label" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+[node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="SaveButton" type="Button" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+[node name="SnapModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Save"
 
-[node name="LoadButton" type="Button" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+[node name="LoadButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Load"
 
-[node name="OpenMenu" type="Button" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+[node name="OpenMenu" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Assets Menu"
 
-[node name="DeleteObjMode" type="CheckButton" parent="UILayer/MainUIControl/PanelContainer/VBoxContainer"]
+[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
+[node name="DeleteObjMode" type="CheckButton" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Delete"
+
+[node name="GmMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
+layout_mode = 0
+offset_left = 87.0
+offset_top = 4.0
+offset_right = 199.0
+offset_bottom = 35.0
+text = "Game Master"
+
+[node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/GmMenu"]
+oversampling_override = 1.0
+visible = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="ChangePermissions" type="Button" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
+[node name="ControlsMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
+layout_mode = 0
+offset_left = 210.0
+offset_top = 5.0
+offset_right = 284.0
+offset_bottom = 36.0
+text = "Controls"
+
+[node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/ControlsMenu"]
+oversampling_override = 1.0
+visible = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="HowTo" type="Button" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
+[node name="MultiplayerMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 5.0
+offset_right = 395.0
+offset_bottom = 36.0
+text = "Multiplayer"
+
+[node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu"]
+oversampling_override = 1.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="PlayerList" type="Button" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
+[node name="MeasureMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
+layout_mode = 0
+offset_left = 408.0
+offset_top = 5.0
+offset_right = 484.0
+offset_bottom = 36.0
+text = "Measure"
+
+[node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/MeasureMenu"]
+oversampling_override = 1.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="RulerButton" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
+[node name="MainUIControl" type="Control" parent="UILayer"]
+visible = false
+layout_mode = 3
+anchor_top = 0.105000004
+anchor_bottom = 0.105000004
+offset_top = -0.040000916
+offset_right = 40.0
+offset_bottom = 39.960007
 
 [node name="OpenMenuControl" type="Control" parent="UILayer"]
 visible = false
@@ -98,8 +238,10 @@ disable_3d = true
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(700, 500)
+visible = false
 
 [node name="PanelContainer" type="PanelContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow"]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -107,9 +249,11 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow/PanelContainer"]
+visible = false
 layout_mode = 2
 
 [node name="GridContainer" type="GridContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow/PanelContainer/ScrollContainer"]
+visible = false
 layout_mode = 2
 columns = 3
 

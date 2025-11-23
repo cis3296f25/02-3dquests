@@ -2,5 +2,5 @@
 
 [ext_resource type="Script" uid="uid://hamn20b8ht3q" path="res://scripts/ghost_object.gd" id="1_n1pvs"]
 
-[node name="GhostObject" type="Node3D"]
+[node name="GhostObject" type="Node3D" groups=["Pickable"]]
 script = ExtResource("1_n1pvs")

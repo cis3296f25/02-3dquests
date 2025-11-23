@@ -3,7 +3,7 @@ extends Node3D
 @onready var parent = get_parent()
 @onready var camera: Camera3D = get_parent().get_node("PlacerCamera")
 @onready var object: Node3D = $GhostObject
-@onready var main_ui = get_parent().get_node("UILayer/MainUIControl")
+@onready var main_ui = get_parent().get_node("UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel")
 @onready var object_menu = get_parent().get_node("UILayer/OpenMenuControl")
 @onready var object_menu_window = get_parent().get_node("UILayer/OpenMenuControl/OpenMenuWindow")
 @onready var save_system = get_parent().get_node("SaveSystem")
@@ -20,6 +20,7 @@ func _ready() -> void:
 	main_ui.save_button_pressed.connect(_save_button)
 	main_ui.load_button_pressed.connect(_load_button)
 	main_ui.open_menu_pressed.connect(_open_menu)
+	main_ui.close_button_pressed.connect(_close_button)
 	object_menu.object_selected.connect(_select_object)
 	save_system.load_obj.connect(_load_object)
 	
@@ -91,14 +92,14 @@ func _add_collision_recursive(node: Node3D) -> void:
 # Gets infro from file, adds child
 func _load_object(pos: Vector3, rot: Vector3, path: String):
 	if load(path) != null:
-		var new_node = Node3D.new()
-		add_child(new_node)
-		var new_obj = load(path).instantiate()
-		new_node.add_child(new_obj)
-		new_node.global_position = pos
-		new_node.global_rotation = rot
+		#var new_node = Node3D.new()
+		#add_child(new_node)
+		#var new_obj = load(path).instantiate()
+		#new_node.add_child(new_obj)
+		#new_node.global_position = pos
+		#new_node.global_rotation = rot
+		parent.place_object(path, pos, rot)
 		save_system.store_properties(pos, rot, path)
-		_add_collision_recursive(new_node)
 
 func _save_button() -> void:
 	save_system.save()
@@ -111,3 +112,6 @@ func _open_menu():
 	
 func _select_object(scene: PackedScene):
 	object.set_mesh(scene)
+
+func _close_button() -> void:
+	$"../UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel".hide()

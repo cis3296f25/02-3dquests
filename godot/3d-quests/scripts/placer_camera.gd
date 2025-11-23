@@ -3,6 +3,7 @@ class_name FreeLookCamera extends Camera3D
 @onready var root = get_parent()
 
 @export_range(0.0, 1.0) var sensitivity: float = 0.25
+@export var snap: bool = true
 
 # Mouse state
 var _mouse_position = Vector2(0.0, 0.0)
@@ -29,7 +30,7 @@ var placer_obj: Node3D
 
 #parent node
 @onready var camera_manager = get_parent().get_node("CameraTestManager")
-@onready var ui = get_parent().get_node("UILayer/MainUIControl")  # adjust path
+@onready var ui = get_parent().get_node("UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel")  # adjust path
 
 func _unhandled_input(event):
 	raycast.force_raycast_update()
@@ -63,6 +64,10 @@ func _unhandled_input(event):
 			MOUSE_BUTTON_WHEEL_DOWN: # Decreases place distance
 				place_distance += 1
 				_update_place_distance()
+	
+	if Input.is_action_just_pressed("tab"):
+		snap = not snap
+		get_parent().get_node("UILayer/MainUIControl").update_snap_label(snap)
 
 # Updates mouselook and movement every frame
 func _process(delta):
@@ -144,9 +149,35 @@ func get_place_object_pos():
 		#box is placed in the position of the collision
 		#this solves the issue of the box always being a certain radius from the camera, making it easier to reliably place objects where expected
 		var point = raycast.get_collision_point()
-		point = point.round()
+		if snap:
+			point = point.round()
+		
+		var placer_mesh = placer_obj.get_child(0).get_child(0)
+		var lowest_local = 0
+		if placer_mesh is MeshInstance3D:
+			lowest_local = get_mesh_lowest_local(placer_mesh)
+		point.y = clamp(point.y, lowest_local * -1, 1000)
 		placer_obj.position = point
 	return placer_obj.global_transform.origin
+
+func get_mesh_lowest_local(mi: MeshInstance3D) -> float:
+	var mesh = mi.mesh
+	if mesh == null:
+		return 0.0
+	
+	var lowest = INF
+
+	for surface_idx in range(mesh.get_surface_count()):
+		var arrays := mesh.surface_get_arrays(surface_idx)
+		var verts = arrays[Mesh.ARRAY_VERTEX]
+
+		for v in verts:
+			if v.y < lowest:
+				lowest = v.y
+
+	# If mesh had no vertices:
+	return lowest if lowest != INF else 0.0
+
 
 # Converts the current mouse position to a point in 3D space
 func get_mouse_world_pos():

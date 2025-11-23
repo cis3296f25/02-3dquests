@@ -7,7 +7,8 @@ to the largest number of people.
 
 (Screenshot will be added later)
 
-# How to run (for Windows)
+# How to run locally (for Windows)
+- Download zip file from latest release (Sprint 4 Demo, release 1.5)
 - Have installed node v22.20.02
 - Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
 - Have godot installed: https://godotengine.org/download/windows/. (Extract .exe from zipped folder)
@@ -32,13 +33,15 @@ To run game with sign-in:
 - Contact 82chaudrys@gmail.com for .env file for database credentials to sign in
 - Click on http://localhost:3000/ which appears in terminal
 
+# How to play and test
+Read release notes for release 1.5
 
-# How to run godot server on windows powershell
+# How to run local godot server on windows powershell
 ```
 & "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn"
 ```
 
-# How to run (for MacOS)
+# How to run locally (for MacOS)
 Coming Soon...
 
 # How to contribute
