@@ -32,6 +32,29 @@ var placer_obj: Node3D
 @onready var camera_manager = get_parent().get_node("CameraTestManager")
 @onready var ui = get_parent().get_node("UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel")  # adjust path
 
+# Path to the hover material for creating glow
+const HOVER_MATERIAL_PATH = "res://materials/Blue_Hover_Glow.tres"
+# Hover material for creating a glow effect
+var hover_material: StandardMaterial3D
+var hovered_object: Node3D = null
+# This will store the original material overrides, to return the material to normal after unhovering over it.
+var original_overrides: Dictionary = {}
+
+
+
+func _ready():
+	# Load the hover material for creating a glow effect.
+	if ResourceLoader.exists(HOVER_MATERIAL_PATH):
+		hover_material = load(HOVER_MATERIAL_PATH)
+	else:
+		# Fallback: Create a simple blue glow material if the hover material is missing.
+		printerr("WARNING: Hover material not found at %s. Using simple generated glow material." % HOVER_MATERIAL_PATH)
+		hover_material = StandardMaterial3D.new()
+		hover_material.emission_enabled = true
+		hover_material.emission = Color.BLUE
+		hover_material.emission_energy = 3.0
+
+	
 func _unhandled_input(event):
 	raycast.force_raycast_update()
 	
@@ -89,6 +112,25 @@ func _process(delta):
 	else:
 		get_place_object_pos()
 	
+	#Check what object is under the cursor
+	#Check if we are holding an object, if so, then we can’t use hover glow effect.
+	var new_hovered_object = null
+	if picked_object == null:
+		new_hovered_object = get_object_under_cursor()
+
+	# Check if the object that is hovered over has changed
+	if new_hovered_object != hovered_object:
+		# Remove the hovering glow effect from the old object 
+		if hovered_object != null and is_instance_valid(hovered_object):
+			_remove_hover_effect(hovered_object)
+			
+		# Apply the hovering glow effect to the new object
+		if new_hovered_object != null:
+			_apply_hover_effect(new_hovered_object)
+			
+		# Update the tracker
+		hovered_object = new_hovered_object
+	# --- END: Hover Logic ---
 
 # Updates camera movement
 func _update_movement(delta):
@@ -247,3 +289,41 @@ func show_ghost():
 	for child in placer_obj.get_children():
 		if child is MeshInstance3D:
 			child.visible = true
+			
+# --- NEW: Hover Effect Functions ---
+
+# Recursively finds the first MeshInstance3D in a node's children.
+# This is needed because your 'Pickable' object is a StaticBody3D,
+# and we need to apply the material to its MeshInstance3D child.
+func _find_mesh_in_children(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node
+	
+	for child in node.get_children():
+		var mesh = _find_mesh_in_children(child)
+		if mesh:
+			return mesh
+			
+	return null
+
+# Applies the hover material override
+func _apply_hover_effect(body: Node3D):
+	if body == null:
+		return
+
+	var mesh = _find_mesh_in_children(body)
+	if mesh and not original_overrides.has(mesh):
+		# Save the mesh's current override (even if it's null)
+		original_overrides[mesh] = mesh.material_override
+		mesh.material_override = hover_material
+
+# Restores the original material override
+func _remove_hover_effect(body: Node3D):
+	if body == null or not is_instance_valid(body):
+		return
+
+	var mesh = _find_mesh_in_children(body)
+	# Check if we have a saved override for this mesh
+	if mesh and original_overrides.has(mesh):
+		mesh.material_override = original_overrides[mesh] # Restore it
+		original_overrides.erase(mesh) # Remove from dictionary
