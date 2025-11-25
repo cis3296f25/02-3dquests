@@ -11,7 +11,9 @@ datasource db {
 model ServerSession {
   id            String               @id @default(cuid())
   campaignId    String
-  awsSessionId  String?
+  awsSessionId  String
+  pid           Int
+  port          Int
   status        String               @default("active")
   createdAt     DateTime             @default(now())
   endedAt       DateTime?

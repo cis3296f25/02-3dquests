@@ -9,7 +9,7 @@ var _peers: Dictionary[String, WebSocketPeer] = {}
 var last_peer_id := 0
 
 # Authoritative object storage
-var objects: Dictionary[String, Dictionary] = {}  # object_id -> {mesh, position, rotation}
+var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
 var last_object_id := 0
 
 var port = ""
@@ -92,7 +92,7 @@ func _process(_delta):
 			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
 
 # To make sure no more than one person can move an object at a time
-var object_owners: Dictionary[String, String] = {}
+var object_owners: Dictionary[int, String] = {}
 
 func handle_packet(peer_id: String, data: Dictionary):
 	match data.type:
@@ -124,7 +124,7 @@ func handle_first_contact(peer_id: String, data: Dictionary):
 
 func handle_place(peer_id: String, data: Dictionary):
 	last_object_id += 1
-	var obj_id = str(last_object_id)
+	var obj_id = last_object_id
 	objects[obj_id] = {
 		"mesh": data.mesh,
 		"position": data.position,
@@ -144,7 +144,7 @@ func handle_place(peer_id: String, data: Dictionary):
 	
 
 func handle_update(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not objects.has(data.obj_id):
 		print("Peer %s tried to update missing object %s" % [peer_id, data.obj_id])
 		return
@@ -163,7 +163,7 @@ func handle_update(peer_id: String, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 
 func handle_delete(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not objects.has(obj_id):
 		print("Peer %s tried to delete missing object %s" % [peer_id, data.obj_id])
 		return
@@ -179,7 +179,7 @@ func handle_delete(peer_id: String, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 
 func handle_pickup(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not objects.has(obj_id):
 		print("Peer %s tried to pick up missing object %s" % [peer_id, obj_id])
 	
@@ -202,7 +202,7 @@ func handle_pickup(peer_id: String, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 	
 func handle_drop(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not object_owners.has(obj_id):
 		print("Peer %s tried to drop object %s, but it’s not held" % [peer_id, obj_id])
 		return

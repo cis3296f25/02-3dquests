@@ -1,9 +1,10 @@
+from .db import fetch_all, execute
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException
-from .db import db
+from datetime import datetime
 import jwt
 import dotenv
-import datetime
+
 
 JWT_SECRET = dotenv.get_key(".env", "JWT_SECRET")
 JWT_ALGO = "HS256"
@@ -26,79 +27,70 @@ def verify_jwt(token: str):
         if not payload or "userId" not in payload:
             raise HTTPException(status_code=401, detail="Invalid token")
         return payload
-    except InvalidTokenError:
-        return None
-
-async def user_can_access_campaign(user_id: int, campaign_id: str) -> bool:
-    try:
-        count = await db.campaignmember.count(
-            where={
-                "campaignId": campaign_id,
-                "userId": user_id
-            }
-        )
-        return count > 0
-    except Exception as e:
-        print("Error in user_can_access_campaign: ", e)
-        return None
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 async def is_existing_session(campaign_id: str):
     try:
-        return await db.serversession.find_first(
-            where={
-                "campaignId": campaign_id,
-                "status": "active"
-            }
-        )
+        session = await fetch_all("""
+            SELECT * FROM "ServerSession"
+            WHERE "campaignId" = $1 AND "status" = 'active';         
+        """, campaign_id)
+        if not session:
+            return None
+        row = dict(session[0])
+        return row
     except Exception as e:
         print("Problem in is_existing_session: ", e)
-        return False
+        return None
 
-async def add_new_session(campaign_id: str, session_token: str):
+async def add_new_session(campaign_id: str, session_token: str, pid: int, port: int):
     try:
-        session = await db.serversession.create(
-            data={
-                "campaignId": campaign_id,
-                "awsSessionId": session_token,
-                "status": "active",
-                "activePlayers": 0,
-            }
-        )
-        return session
+        await execute("""
+            INSERT INTO "ServerSession" ("campaignId", "awsSessionId", "pid", "port", "status", "activePlayers")
+            VALUES ($1, $2, $3, $4, 'active', 0);
+        """, campaign_id, session_token, pid, port)
+        
+        session = await fetch_all("""
+            SELECT * FROM "ServerSession"
+            WHERE "campaignId" = $1 AND "awsSessionId" = $2 AND "status" = 'active';
+        """, campaign_id, session_token)
+        
+        row = dict(session[0])
+        return row
+        
     except Exception as e:
         print("Problem in add_new_session: ", e)
         return None
 
 async def player_join(session_token: str, user_id: str):
     try:
-        session = await db.serversession.find_first(where={"awsSessionId": session_token})
-        if not session:
-            raise ValueError("Session not found")
-
-        # Check if participant already exists
-        existing = await db.sessionparticipant.find_first(
-            where={"sessionId": session.id, "userId": user_id}
-        )
-        if existing:
-            # Just mark them connected
-            await db.sessionparticipant.update(
-                where={"id": existing.id}, data={"connected": True, "lastHeart": datetime.utcnow()}
+        await execute("""
+            -- 1) Try to update existing participant
+            WITH updated AS (
+                UPDATE "SessionParticipant"
+                SET "connected" = TRUE,
+                    "lastHeart" = $3
+                WHERE "sessionId" = (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $1)
+                AND "userId" = $2
+                RETURNING *
             )
-        else:
-            await db.sessionparticipant.create(
-                data={
-                    "sessionId": session.id,
-                    "userId": user_id,
-                    "connected": True,
-                    "joinedAt": datetime.utcnow(),
-                }
-            )
+            
+            -- 2) If UPDATE affected 0 rows, INSERT new participant AND increment activePlayers
+            INSERT INTO "SessionParticipant" ("sessionId", "userId", "connected", "joinedAt")
+            SELECT 
+                (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $1),
+                $2,
+                TRUE,
+                $3
+            WHERE NOT EXISTS (SELECT 1 FROM updated);
 
-        # Increment activePlayers
-        await db.serversession.update(
-            where={"id": session.id},
-            data={"activePlayers": session.activePlayers + 1},
-        )
+            -- 3) Increment activePlayers only if this was a new participant
+            UPDATE "ServerSession"
+            SET "activePlayers" = "activePlayers" + 1
+            WHERE "awsSessionId" = $1
+            AND NOT EXISTS (SELECT 1 FROM updated);
+        """, session_token, user_id, datetime.utcnow())
         return True
     except Exception as e:
         print("Problem in player_join: ", e)
@@ -106,59 +98,71 @@ async def player_join(session_token: str, user_id: str):
 
 async def player_left(session_token: str, user_id: str):
     try:
-        session = await db.serversession.find_first(where={"awsSessionId": session_token})
-        if not session:
-            raise ValueError("Session not found")
-
-        participant = await db.sessionparticipant.find_first(
-            where={"sessionId": session.id, "userId": user_id}
-        )
-        if participant and participant.connected:
-            await db.session_participant.update(
-                where={"id": participant.id}, data={"connected": False, "lastHeart": datetime.utcnow()}
+        await execute("""
+            -- 1) Try to update participant IF they were connected before
+            WITH updated AS (
+                UPDATE "SessionParticipant"
+                SET "connected" = FALSE,
+                    "lastHeart" = $3
+                WHERE "sessionId" = (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $1)
+                AND "userId" = $2
+                AND "connected" = TRUE   -- Only disconnect if actually connected
+                RETURNING *
             )
 
-            # Decrement activePlayers but not below 0
-            new_count = max(session.activePlayers - 1, 0)
-            await db.server_session.update(
-                where={"id": session.id},
-                data={"activePlayers": new_count},
-            )
-            return True
+            -- 2) Only decrement activePlayers if a row was updated
+            UPDATE "ServerSession"
+            SET "activePlayers" = GREATEST("activePlayers" - 1, 0)
+            WHERE "awsSessionId" = $1
+            AND EXISTS (SELECT 1 FROM updated);
+        """, session_token, user_id, datetime.utcnow())
+        return True
     except Exception as e:
         print("Problem in player_left: ", e)
         return False
     
 async def check_how_many_players(session_token: str):
     try:
-        session = await db.serversession.find_first(where={"awsSessionId": session_token})
+        session = await fetch_all("""
+            SELECT "activePlayers" FROM "ServerSession"
+            WHERE "awsSessionId" = $1;
+        """, session_token)
         if not session:
-            print(f"No session found with token: {session_token}")
             return None
-
-        return session.activePlayers
+        row = session[0]
+        return int(row["activePlayers"])
     except Exception as e:
         print("Problem in check_how_many_players: ", e)
         return None
     
-async def update_closed_server(session_token: str):
+async def close_session(session_token: str):
     try:
-        session = await db.serversession.find_first(
-            where={
-                "awsSessionId": session_token
-            }
-        )
-        
-        if session:
-            await db.serversession.update(
-                where={
-                    "awsSessionId": session_token
-                },
-                data={
-                    "active": False
-                }
-            )
-            return True
+        await execute("""
+            UPDATE "ServerSession"
+            SET "status" = 'closed'
+            WHERE "awsSessionId" = $1;
+        """, session_token)
+        return True
     except Exception as e:
         print("Problem in update_closed_server: ", e)
         return False
+    
+async def get_all_active_sessions():
+    try:
+        sessions = await fetch_all("""
+            SELECT * FROM "ServerSession"
+            WHERE "status" = 'active';
+        """)
+        sessions = [dict(row) for row in sessions]
+        session_dict = {
+            row["campaignId"]: {
+                "pid": row["pid"],
+                "port": row["port"],
+                "session_token": row["awsSessionId"]
+            }
+            for row in sessions
+        }
+        return session_dict
+    except Exception as e:
+        print("Problem in get_all_active_sessions: ", e)
+        return []
