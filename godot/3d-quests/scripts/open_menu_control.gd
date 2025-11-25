@@ -9,8 +9,7 @@ signal object_selected(scene: PackedScene)
 func _ready():
 	menu_window.close_requested.connect(_on_menu_closed)
 	menu_window.hide()
-	asset_categorizer.scan_and_categorize("res://assets")
-	var object_scenes = asset_categorizer.get_all_categorized_assets()
+	var object_scenes = load_asset_json()
 	for category in object_scenes.keys():
 		var asset_list = object_scenes[category]
 		
@@ -29,7 +28,19 @@ func _on_button_pressed(scene: PackedScene):
 
 func _on_menu_closed():
 	menu_window.hide()
-
+	
+func load_asset_json() -> Dictionary:
+	var file_path = "res://assets/asset_list.json"
+	if not FileAccess.file_exists(file_path):
+		push_error("asset_list.json not found!")
+		return {}
+	var text = FileAccess.get_file_as_string(file_path)
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_error("Invalid asset_list.json format")
+		return {}
+	return parsed
+	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass

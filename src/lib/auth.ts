@@ -19,12 +19,7 @@ export const auth = betterAuth({
     plugins: [
         nextCookies()
     ],
-    trustedOrigins: [
-        "http://localhost:3000",
-        "https://02-3dquests.vercel.app",
-        "https://3dquests.com",
-        "https://www.3dquests.com"
-    ],
+    trustedOrigins: process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(","),
     advanced: {
         database: {
             useNumberId: true

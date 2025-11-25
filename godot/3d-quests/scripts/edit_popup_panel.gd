@@ -9,11 +9,12 @@ signal close_button_pressed
 
 @onready var save_button = $VBoxContainer/SaveButton
 @onready var load_button = $VBoxContainer/LoadButton
+@onready var snap_mode_label = $VBoxContainer/SnapModeLabel
 @onready var open_menu = $VBoxContainer/OpenMenu
 @onready var place_mode_label = $VBoxContainer/PlaceModeLabel
 @onready var delete_obj_check = $VBoxContainer/DeleteObjMode
 @onready var close_button = $VBoxContainer/Close
-@onready var save_system = get_parent().get_parent().get_node("SaveSystem")
+@onready var save_system = get_tree().get_current_scene().get_node("SaveSystem")
 
 var placement_mode_enabled := false
 var delete_mode_enabled := false

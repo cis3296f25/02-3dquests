@@ -118,3 +118,13 @@ func get_assets_by_category(category_name: String):
 ## @return: A Dictionary where keys are the categories and values are the Arrays of asset paths.
 func get_all_categorized_assets():
 	return categorized_assets.duplicate()
+
+## Saves the assets to a json file
+## @param path: Path where the file should be saved
+func save_to_json(path: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(categorized_assets, "\t"))
+		file.close()
+	else:
+		push_error("Failed to save asset JSON to: %s" % path)

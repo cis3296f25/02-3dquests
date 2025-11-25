@@ -22,6 +22,7 @@ size = Vector2(150, 150)
 [sub_resource type="Environment" id="Environment_br5go"]
 background_mode = 1
 background_color = Color(0, 0.8352941, 1, 1)
+reflected_light_source = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_16sdf"]
 bg_color = Color(0.7647059, 0, 0, 1)
@@ -41,6 +42,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 [node name="Floor" type="StaticBody3D" parent="."]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+cast_shadow = 0
 mesh = SubResource("PlaneMesh_6hmdl")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
@@ -80,7 +82,7 @@ text = "Edit"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/EditMenu"]
 oversampling_override = 1.0
-size = Vector2i(114, 210)
+size = Vector2i(114, 233)
 visible = true
 script = ExtResource("6_lahmr")
 
@@ -88,15 +90,15 @@ script = ExtResource("6_lahmr")
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 110.0
-offset_bottom = 206.0
+offset_bottom = 229.0
 
 [node name="PlaceModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
+[node name="SnapModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="SnapModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
+[node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Save"
 
@@ -226,7 +228,6 @@ offset_right = 40.0
 offset_bottom = 39.960007
 
 [node name="OpenMenuControl" type="Control" parent="UILayer"]
-visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
@@ -241,7 +242,6 @@ size = Vector2i(700, 500)
 visible = false
 
 [node name="PanelContainer" type="PanelContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow"]
-visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -249,11 +249,9 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow/PanelContainer"]
-visible = false
 layout_mode = 2
 
 [node name="GridContainer" type="GridContainer" parent="UILayer/OpenMenuControl/OpenMenuWindow/PanelContainer/ScrollContainer"]
-visible = false
 layout_mode = 2
 columns = 3
 
