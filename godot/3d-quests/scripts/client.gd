@@ -42,7 +42,7 @@ func get_session_token():
 
 	#var url = "https://game.3dquests.com/get-active-session"
 	
-	var url = "https://3dquests.com/api/sessions/get-active-session"
+	var url = "https://www.3dquests.com/api/sessions/get-active-session"
 	print(url)
 	
 	var error = http_request.request(url, [], HTTPClient.METHOD_POST, json)
