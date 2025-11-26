@@ -40,6 +40,7 @@ func _ready():
 func _process(_delta):
 	if Time.get_unix_time_from_system() - last_activity > 3600:
 		print("Idle 1h – quitting.")
+		stop_session()
 		get_tree().quit()
 
 	while _tcp_server.is_connection_available():
@@ -148,6 +149,28 @@ func _http_leave_request_completed(result, response_code, headers, body):
 	if text.error != OK:
 		print("Failed to parse JSON from session API")
 		return
+
+func stop_session():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_stop_session_request_completed)
+	var data = {
+		"campaignId": campaign_id,
+		"session_token": session_token,
+	}
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json"]
+	var error = http_request.request("https://game.3dquests.com/stop_session", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+
+func _http_stop_session_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to stop server: %s" % response_code)
+		return
+	
+	print("Server stopped successfully.")
 
 # To make sure no more than one person can move an object at a time
 var object_owners: Dictionary[int, String] = {}
