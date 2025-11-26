@@ -2,6 +2,7 @@ from .db import fetch_all, execute
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException
 from datetime import datetime
+from uuid import uuid4
 import jwt
 import dotenv
 
@@ -46,10 +47,11 @@ async def is_existing_session(campaign_id: str):
 
 async def add_new_session(campaign_id: str, session_token: str, pid: int, port: int):
     try:
+        new_id = str(uuid4())
         await execute("""
-            INSERT INTO "ServerSession" ("campaignId", "awsSessionId", "pid", "port", "status", "activePlayers")
-            VALUES ($1, $2, $3, $4, 'active', 0);
-        """, campaign_id, session_token, pid, port)
+            INSERT INTO "ServerSession" ("id", "campaignId", "awsSessionId", "pid", "port", "status", "activePlayers")
+            VALUES ($1, $2, $3, $4, $5, 'active', 0);
+        """, new_id, campaign_id, session_token, pid, port)
         
         session = await fetch_all("""
             SELECT * FROM "ServerSession"
@@ -65,32 +67,46 @@ async def add_new_session(campaign_id: str, session_token: str, pid: int, port: 
 
 async def player_join(session_token: str, user_id: str):
     try:
+        new_id = str(uuid4())
         await execute("""
+            WITH
             -- 1) Try to update existing participant
-            WITH updated AS (
+            updated AS (
                 UPDATE "SessionParticipant"
                 SET "connected" = TRUE,
-                    "lastHeart" = $3
-                WHERE "sessionId" = (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $1)
-                AND "userId" = $2
-                RETURNING *
-            )
-            
-            -- 2) If UPDATE affected 0 rows, INSERT new participant AND increment activePlayers
-            INSERT INTO "SessionParticipant" ("sessionId", "userId", "connected", "joinedAt")
-            SELECT 
-                (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $1),
-                $2,
-                TRUE,
-                $3
-            WHERE NOT EXISTS (SELECT 1 FROM updated);
+                    "lastHeart" = $4
+                WHERE "sessionId" = (
+                        SELECT id FROM "ServerSession" WHERE "awsSessionId" = $2
+                    )
+                  AND "userId" = $3
+                RETURNING id
+            ),
 
-            -- 3) Increment activePlayers only if this was a new participant
-            UPDATE "ServerSession"
-            SET "activePlayers" = "activePlayers" + 1
-            WHERE "awsSessionId" = $1
-            AND NOT EXISTS (SELECT 1 FROM updated);
-        """, session_token, user_id, datetime.utcnow())
+            -- 2) Insert new participant if no update happened
+            inserted AS (
+                INSERT INTO "SessionParticipant"
+                    ("id", "sessionId", "userId", "connected", "joinedAt")
+                SELECT
+                    $1,
+                    (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $2),
+                    $3,
+                    TRUE,
+                    $4
+                WHERE NOT EXISTS (SELECT 1 FROM updated)
+                RETURNING id
+            ),
+
+            -- 3) Increment activePlayers only if a new participant was inserted
+            inc AS (
+                UPDATE "ServerSession"
+                SET "activePlayers" = "activePlayers" + 1
+                WHERE "awsSessionId" = $2
+                  AND EXISTS (SELECT 1 FROM inserted)
+                RETURNING id
+            )
+
+            SELECT 1;  -- dummy SELECT to make it a valid single statement
+        """, new_id, session_token, user_id, datetime.utcnow())
         return True
     except Exception as e:
         print("Problem in player_join: ", e)
@@ -99,23 +115,33 @@ async def player_join(session_token: str, user_id: str):
 async def player_left(session_token: str, user_id: str):
     try:
         await execute("""
-            -- 1) Try to update participant IF they were connected before
-            WITH updated AS (
+            WITH
+            -- 1) Update the participant ONLY if they were connected
+            updated AS (
                 UPDATE "SessionParticipant"
                 SET "connected" = FALSE,
                     "lastHeart" = $3
-                WHERE "sessionId" = (SELECT id FROM "ServerSession" WHERE "awsSessionId" = $1)
+                WHERE "sessionId" = (
+                        SELECT id FROM "ServerSession"
+                        WHERE "awsSessionId" = $1
+                    )
                 AND "userId" = $2
-                AND "connected" = TRUE   -- Only disconnect if actually connected
-                RETURNING *
+                AND "connected" = TRUE
+                RETURNING id
+            ),
+
+            -- 2) Decrement activePlayers only if a row was updated
+            dec AS (
+                UPDATE "ServerSession"
+                SET "activePlayers" = GREATEST("activePlayers" - 1, 0)
+                WHERE "awsSessionId" = $1
+                AND EXISTS (SELECT 1 FROM updated)
+                RETURNING id
             )
 
-            -- 2) Only decrement activePlayers if a row was updated
-            UPDATE "ServerSession"
-            SET "activePlayers" = GREATEST("activePlayers" - 1, 0)
-            WHERE "awsSessionId" = $1
-            AND EXISTS (SELECT 1 FROM updated);
+            SELECT 1;  -- makes the whole thing a single valid SQL statement
         """, session_token, user_id, datetime.utcnow())
+
         return True
     except Exception as e:
         print("Problem in player_left: ", e)

@@ -20,7 +20,6 @@ var last_activity = Time.get_unix_time_from_system()
 
 func _ready():
 	var args = OS.get_cmdline_args()
-	
 	for a in args:
 		if a.begins_with("--session-token="):
 			session_token = a.split("=")[1]
@@ -38,7 +37,6 @@ func _ready():
 		push_error("Unable to start server.")
 		set_process(false)
 
-
 func _process(_delta):
 	if Time.get_unix_time_from_system() - last_activity > 3600:
 		print("Idle 1h – quitting.")
@@ -54,9 +52,14 @@ func _process(_delta):
 	# Iterate over all connected peers using "keys()" so we can erase in the loop
 	for peer_id in _peers.keys():
 		var peer = _peers[peer_id]
-
 		peer.poll()
-
+		
+		var err = peer.send_text("ping")
+		if err != OK:
+			print("- Peer %s disconnected (send failed)" % peer_id)
+			_peers.erase(peer_id)
+			player_leave(peer_id)
+			
 		var peer_state = peer.get_ready_state()
 		if peer_state == WebSocketPeer.STATE_OPEN:
 			if not peer.has_meta("sent_world"):
@@ -90,6 +93,65 @@ func _process(_delta):
 			var code = peer.get_close_code()
 			var reason = peer.get_close_reason()
 			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
+			player_leave(peer_id)
+
+func player_join(peer_id: String):
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_join_request_completed)
+
+	var data = {
+		"session_token": session_token,
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % peer_id]
+
+	var error = http_request.request("https://game.3dquests.com/join", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_join_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+
+func player_leave(peer_id: String):
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_join_request_completed)
+	var data = {
+		"campaignId": campaign_id,
+		"session_token": session_token,
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % peer_id]
+
+	var error = http_request.request("https://game.3dquests.com/leave", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_leave_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
 
 # To make sure no more than one person can move an object at a time
 var object_owners: Dictionary[int, String] = {}
@@ -121,6 +183,7 @@ func handle_first_contact(peer_id: String, data: Dictionary):
 	_peers[user_id] = _peers[peer_id]
 	_peers.erase(peer_id)
 	print("Peer %s identified as user %s" % [peer_id, user_id])
+	#player_join()
 
 func handle_place(peer_id: String, data: Dictionary):
 	last_object_id += 1
@@ -239,8 +302,6 @@ func send_world_state(peer_id):
 		"objects": obj_list
 	}))
 	last_activity = Time.get_unix_time_from_system()
-
-	
 	
 func broadcast(data: Dictionary):
 	var text = JSON.stringify(data)

@@ -73,7 +73,6 @@ func _http_connect_request_completed(result, response_code, headers, body):
 	userId = res["user_jwt"]
 
 	connect_to_server()
-	player_join()	
 
 func connect_to_server():
 	var websocket_url = "wss://game.3dquests.com/server/" + campaignId + "/" + session_token
@@ -90,7 +89,8 @@ func connect_to_server():
 	else:
 		print("Unable to connect.")
 		set_process(false)
-
+		
+		
 func player_join():
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
@@ -149,7 +149,6 @@ func _http_leave_request_completed(result, response_code, headers, body):
 		print("Failed to parse JSON from session API")
 		return
 
-
 func _process(_delta):
 	if not ws_connected:
 		return
@@ -195,7 +194,6 @@ func _process(_delta):
 	elif state == WebSocketPeer.STATE_CLOSED:
 		# The code will be `-1` if the disconnection was not properly notified by the remote peer.
 		var code = socket.get_close_code()
-		player_leave()
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
 		set_process(false) # Stop processing.
 		
