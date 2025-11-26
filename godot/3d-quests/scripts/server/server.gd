@@ -59,6 +59,7 @@ func _process(_delta):
 			print("- Peer %s disconnected (send failed)" % peer_id)
 			_peers.erase(peer_id)
 			player_leave(peer_id)
+		
 			
 		var peer_state = peer.get_ready_state()
 		if peer_state == WebSocketPeer.STATE_OPEN:
@@ -88,12 +89,7 @@ func _process(_delta):
 					# Echo the packet back.
 					# peer.send(packet)
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
-			# Remove the disconnected peer.
-			_peers.erase(peer_id)
-			var code = peer.get_close_code()
-			var reason = peer.get_close_reason()
-			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
-			player_leave(peer_id)
+			pass
 
 func player_join(peer_id: String):
 	var http_request = HTTPRequest.new()
