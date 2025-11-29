@@ -41,6 +41,7 @@ model CampaignMap {
   campaignId  String
   campaign    Campaign @relation(fields: [campaignId], references: [id])
 
+  @@unique([campaignId, name])
   @@map("maps")
 }
 

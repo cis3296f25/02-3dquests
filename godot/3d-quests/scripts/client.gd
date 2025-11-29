@@ -89,65 +89,6 @@ func connect_to_server():
 	else:
 		print("Unable to connect.")
 		set_process(false)
-		
-		
-func player_join():
-	var http_request = HTTPRequest.new()
-	add_child(http_request)
-
-	http_request.request_completed.connect(self._http_join_request_completed)
-
-	var data = {
-		"session_token": session_token,
-	}
-
-	var json = JSON.stringify(data)
-	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % userId]
-
-	var error = http_request.request("https://game.3dquests.com/join", headers, HTTPClient.METHOD_POST, json)
-	if error != OK:
-		print("An error occurred in the HTTP request.")
-	#http_request.queue_free()
-
-func _http_join_request_completed(result, response_code, headers, body):
-	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
-		return
-	
-	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
-		print("Failed to parse JSON from session API")
-		return
-
-func player_leave():
-	var http_request = HTTPRequest.new()
-	add_child(http_request)
-
-	http_request.request_completed.connect(self._http_join_request_completed)
-	var data = {
-		"campaignId": campaignId,
-		"session_token": session_token,
-	}
-
-	var json = JSON.stringify(data)
-	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % userId]
-
-	var error = http_request.request("https://game.3dquests.com/leave", headers, HTTPClient.METHOD_POST, json)
-	if error != OK:
-		print("An error occurred in the HTTP request.")
-	#http_request.queue_free()
-
-func _http_leave_request_completed(result, response_code, headers, body):
-	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
-		return
-	
-	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
-		print("Failed to parse JSON from session API")
-		return
 
 func _process(_delta):
 	if not ws_connected:

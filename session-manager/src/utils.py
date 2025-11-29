@@ -192,3 +192,43 @@ async def get_all_active_sessions():
     except Exception as e:
         print("Problem in get_all_active_sessions: ", e)
         return []
+
+async def map_saved(campaign_id: str, map_name: str, map_data: str):
+    try:
+        await execute("""
+            INSERT INTO "CampaignMap" ("id", "name", "description", "data", "campaignId")
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT ("campaignId", "name")
+            DO UPDATE SET data = EXCLUDED.data;
+        """, str(uuid4()), map_name, "Placeholder", map_data, campaign_id)
+        return True
+    except Exception as e:
+        print("Problem in map_saved: ", e)
+        return False
+    
+    
+async def maps_loaded(campaign_id: str):
+    try:
+        maps = await fetch_all("""
+            SELECT "name" FROM "CampaignMap"
+            WHERE "campaignId" = $1;
+        """, campaign_id)
+        maps = [row["name"] for row in maps]
+        return maps
+    except Exception as e:
+        print("Problem in maps_loaded: ", e)
+        return []
+
+async def map_objects(campaign_id: str, map_name: str):
+    try:
+        map_obj = await fetch_all("""
+            SELECT "data" FROM "CampaignMap"
+            WHERE "campaignId" = $1 AND "mapName" = $2;
+        """, campaign_id, map_name)
+        if not map_obj:
+            return None
+        row = dict(map_obj[0])
+        return row["objects"]
+    except Exception as e:
+        print("Problem in map_objects: ", e)
+        return None

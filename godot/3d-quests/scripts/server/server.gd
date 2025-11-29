@@ -12,6 +12,9 @@ var last_peer_id := 0
 var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
 var last_object_id := 0
 
+var maps: Array[String] = []
+var current_map_name: String = ""
+
 var port = ""
 var campaign_id = ""
 var session_token = ""
@@ -187,6 +190,8 @@ func handle_packet(peer_id: String, data: Dictionary):
 			handle_pickup(peer_id, data)
 		"drop_object":
 			handle_drop(peer_id, data)
+		"change_map":
+			pass
 		"hello":
 			handle_first_contact(peer_id, data)
 		_:
@@ -327,3 +332,81 @@ func broadcast(data: Dictionary):
 	for p in _peers.values():
 		if p.get_ready_state() == WebSocketPeer.STATE_OPEN:
 			p.send_text(text)
+			
+			
+func save_maps():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_save_request_completed)
+	var data = {
+		"campaignId": campaign_id,
+		"name": current_map_name,
+		"data": objects
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json"]
+
+	var error = http_request.request("https://game.3dquests.com/save_map", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_save_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+	print("Map saved successfully")
+		
+func load_maps():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_load_request_completed)
+
+	var error = http_request.request("https://game.3dquests.com/load_maps?campaign_id" + campaign_id, [], HTTPClient.METHOD_GET)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_load_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+	maps = json.get_data()["maps"] # API returns { "maps": ["map_name1"] }
+	print("Maps loaded")
+	
+func load_objects_from_specific_map():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+	
+	http_request.request_completed.connect(self._http_load_objects_request_completed)
+	var error = http_request.request("https://game.3dquests.com/load_map_objects?map_name?=" + current_map_name, [], HTTPClient.METHOD_GET)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+		
+func _http_load_objects_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+	objects = json.get_data()["objects"] # API Returns { "objects": { "obj_id1": ... } }
+	print("Got Objects")

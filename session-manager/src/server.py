@@ -9,7 +9,10 @@ from .utils import (
     player_join,
     player_left,
     check_how_many_players,
-    close_session
+    close_session,
+    map_saved,
+    maps_loaded,
+    map_objects
 )
 from .db import pool, get_pool
 import secrets
@@ -195,3 +198,39 @@ async def get_active_session(request: Request):
     session = manager.active_sessions.get(campaign_id)
     print(session)
     return {"session_token": session["session_token"]}
+
+@app.post("/save_map")
+async def save_map(request: Request):
+    data = await request.json()
+    campaign_id = data.get("campaignId")
+    map_name = data.get("name")
+    map_data = data.get("data")
+    if not campaign_id or not map_name or not map_data:
+        raise HTTPException(status_code=400, detail="Missing campaignId or map name or map data")
+    
+    map_saved(campaign_id, map_name, map_data)
+    print(f"Saving {map_name} for campaig: {campaign_id}")  
+    
+    return {"status": "map saved"}
+
+@app.get("/load_maps")
+async def load_maps(campaign_id: str):
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Missing campaignId")
+    
+    map_data = maps_loaded(campaign_id)
+    if not map_data:
+        raise HTTPException(status_code=404, detail="Map not found")
+    
+    return {"maps": map_data}
+
+@app.get("/load_map_objects")
+async def load_map_objects(campaign_id: str, map_name: str):
+    if not campaign_id or not map_name:
+        raise HTTPException(status_code=400, detail="Missing campaignId or map name")
+    
+    object_data = map_objects(campaign_id, map_name)
+    if object_data is None:
+        raise HTTPException(status_code=404, detail="Map objects not found")
+    
+    return {"objects": object_data}
