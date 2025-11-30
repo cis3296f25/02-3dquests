@@ -58,6 +58,7 @@ func _on_delete_mode_toggled(button_pressed: bool):
 		
 var delete_mode_in_scope = false
 # Called every frame. 'delta' is the elapsed time since the previous frame.
+
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("toggle_place"):
 		placement_mode_enabled = !placement_mode_enabled

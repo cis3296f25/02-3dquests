@@ -34,7 +34,7 @@ model SessionParticipant {
 }
 
 model CampaignMap {
-  id          String   @id @default(uuid())
+  id          String   @id @default(cuid())
   name        String   @default("WorldMap")
   description String   @default("The world map of your campaign")
   data        Json
@@ -53,6 +53,7 @@ model Campaign {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   gm          User             @relation(fields: [gmId], references: [id])
+  lastMapName String?          @default("WorldMap")
   members     CampaignMember[]
   sessions    ServerSession[]
   maps        CampaignMap[]

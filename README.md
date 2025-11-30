@@ -38,7 +38,7 @@ Read release notes for release 1.5
 
 # How to run local godot server on windows powershell
 ```
-& "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn"
+& "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn --port=9080"
 ```
 
 # How to run locally (for MacOS)

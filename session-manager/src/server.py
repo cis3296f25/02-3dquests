@@ -94,10 +94,11 @@ async def stop_session(request: Request):
     data = await request.json()
     campaign_id = data["campaignId"]
     session_token = data["session_token"]
+    last_map_name = data.get("last_map_name", "WorldMap")
     if not campaign_id:
         raise HTTPException(status_code=400, detail="Missing campaign_id")
     await manager.stop_server(campaign_id)
-    await close_session(session_token)
+    await close_session(session_token, campaign_id, last_map_name)
     return {"status": "stopped"}
 
 @app.post("/join")
@@ -123,6 +124,7 @@ async def leave(request: Request):
     data = await request.json()
     session_token = data.get("session_token")
     campaign_id = data.get("campaignId")
+    last_map_name = data.get("last_map_name", "WorldMap")
     auth_header = request.headers.get("Authorization")
     jwt = get_auth_jwt(auth_header)
     payload = verify_jwt(jwt)
@@ -139,7 +141,7 @@ async def leave(request: Request):
     count = await check_how_many_players(session_token)
     if count == 0:
         await manager.stop_server(campaign_id)
-        await close_session(session_token)
+        await close_session(session_token, campaign_id, last_map_name)
 
     return {"status": "left"}
 

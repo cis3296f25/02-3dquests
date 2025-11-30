@@ -16,16 +16,16 @@ var ws_connected := false
 var local_objects: Dictionary[int, Node3D] = {}
 var first_packet_sent := false
 
+var maps: Array[String] = []
+var current_map_name = ""
+
 
 func _ready():
 	if OS.is_debug_build():
 		print("DEBUG MODE!!!")
 	else:
 		print("RELEASE MODE.")
-
 	get_session_token()
-	
-
 
 func get_session_token():
 	var http_request = HTTPRequest.new()
@@ -71,12 +71,10 @@ func _http_connect_request_completed(result, response_code, headers, body):
 	session_token = res["session_token"]
 	print("Session token: %s" % session_token)
 	userId = res["user_jwt"]
-
-	connect_to_server()
-
-func connect_to_server():
 	var websocket_url = "wss://game.3dquests.com/server/" + campaignId + "/" + session_token
+	connect_to_server(websocket_url)
 
+func connect_to_server(websocket_url: String):
 	# Initiate connection to the given URL.
 	var err = socket.connect_to_url(websocket_url)
 	if err == OK:
@@ -164,9 +162,25 @@ func handle_data_recieved(data_recieved: Dictionary):
 				obj.position = _parse_vector3_string(data_recieved.position)
 				obj.rotation = _parse_vector3_string(data_recieved.rotation)
 		"world_state_update":
+			current_map_name = data_recieved["map_name"]
+			remove_objects()
 			for obj_data in data_recieved["objects"]:
 				add_object_to_props_container(obj_data)
-				
+		"load_maps":
+			maps = data_recieved["maps"]
+			current_map_name = data_recieved["current_map_name"]
+
+func remove_objects():
+	for obj in local_objects.values():
+		if obj.is_inside_tree():
+			for child in obj.get_children():
+				if child is StaticBody3D and child.has_node("CollisionShape3D"):
+					var shape = child.get_node("CollisionShape3D")
+					shape.queue_free()
+					child.queue_free()
+			obj.queue_free()
+	local_objects.clear()
+
 func add_object_to_props_container(data_recieved):
 	var obj_id = int(data_recieved["obj_id"])
 	var scene = load(data_recieved.mesh)
@@ -257,5 +271,25 @@ func drop_object(obj_id, pos, rot):
 		"obj_id": obj_id,
 		"position": pos,
 		"rotation": rot
+	}
+	socket.send_text(JSON.stringify(data))
+	
+func new_map(map_name: String):
+	var data = {
+		"type": "new_map",
+		"map_name": map_name
+	}
+	socket.send_text(JSON.stringify(data))
+	
+func save_map():
+	var data = {
+		"type": "save_map"
+	}
+	socket.send_text(JSON.stringify(data))
+
+func load_map(map_name: String):
+	var data = {
+		"type": "load_map",
+		"map_name": map_name
 	}
 	socket.send_text(JSON.stringify(data))

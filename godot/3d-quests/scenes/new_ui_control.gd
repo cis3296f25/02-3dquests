@@ -3,6 +3,7 @@ extends Control
 # Node references
 @onready var edit_menu_button = $MenuBar/EditMenu
 @onready var popup_panel = edit_menu_button.get_node("PopupPanel")
+@onready var root = get_parent().get_parent()
 
 
 func _ready() -> void:
@@ -22,6 +23,8 @@ func _ready() -> void:
 func _on_save_pressed():
 	print("Control detected Save pressed")
 	# Your save logic here
+	root.s
+	
 
 func _on_load_pressed():
 	print("Control detected Load pressed")

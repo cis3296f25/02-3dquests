@@ -161,13 +161,25 @@ async def check_how_many_players(session_token: str):
         print("Problem in check_how_many_players: ", e)
         return None
     
-async def close_session(session_token: str):
+async def close_session(session_token: str, campaign_id: str, last_map_name: str):
     try:
         await execute("""
-            UPDATE "ServerSession"
-            SET "status" = 'closed'
-            WHERE "awsSessionId" = $1;
-        """, session_token)
+            With 
+            closed AS (
+                UPDATE "ServerSession"
+                SET "status" = 'closed'
+                WHERE "awsSessionId" = $1
+                RETURNING id;
+            )
+            
+            updated AS (
+                UPDATE "Campaign"
+                SET "lastMapName" = $3
+                WHERE id = $2
+                RETURNING id;
+            )
+            SELECT 1;   
+        """, session_token, campaign_id, last_map_name)
         return True
     except Exception as e:
         print("Problem in update_closed_server: ", e)
