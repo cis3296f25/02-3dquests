@@ -5,6 +5,7 @@ var obj_pos_array = []
 var obj_rot_array = []
 var obj_path_array = []
 signal load_obj(pos: Vector3, rot: Vector3, path: String)
+signal save_map_to_client(pos_arr, rot_arr, path_arr)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -27,6 +28,9 @@ func save():
 	save_file.store_var(obj_rot_array)
 	save_file.store_var(obj_path_array)
 	save_file.close()
+	
+	# Send to client to save to database
+	save_map_to_client.emit(obj_pos_array, obj_rot_array, obj_path_array)
 
 # Loads objects from previous save 
 func load():

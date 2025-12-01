@@ -1,5 +1,7 @@
 extends Node
 
+@onready var save_system = get_node("SaveSystem")
+
 # The URL we will connect to.
 # Use "ws://localhost:9080" if testing with the minimal server example below.
 # `wss://` is used for secure connections,
@@ -25,6 +27,7 @@ func _ready():
 
 	get_session_token()
 	
+	save_system.save_map_to_client.connect(_save_map)
 
 
 func get_session_token():
@@ -149,6 +152,24 @@ func _http_leave_request_completed(result, response_code, headers, body):
 		print("Failed to parse JSON from session API")
 		return
 
+func _save_map(pos_array, rot_array, path_array):
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+	var url = "https://www.3dquests.com/api/maps/save"
+	var header = "Content-Type: application/json"
+	
+	var map_data = {
+		"po_arr": pos_array,
+		"r_arr": rot_array,
+		"pa_arr": path_array
+	}
+	var json = JSON.stringify(map_data)
+	
+	var error = http_request.request(url, header, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error ocurred in the HTTP request")
+	
+	
 
 func _process(_delta):
 	if not ws_connected:
