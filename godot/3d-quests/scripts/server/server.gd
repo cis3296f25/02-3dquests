@@ -9,7 +9,7 @@ var _peers: Dictionary[String, WebSocketPeer] = {}
 var last_peer_id := 0
 
 # Authoritative object storage
-var objects: Dictionary[String, Dictionary] = {}  # object_id -> {mesh, position, rotation}
+var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
 var last_object_id := 0
 
 var port = ""
@@ -20,7 +20,6 @@ var last_activity = Time.get_unix_time_from_system()
 
 func _ready():
 	var args = OS.get_cmdline_args()
-	
 	for a in args:
 		if a.begins_with("--session-token="):
 			session_token = a.split("=")[1]
@@ -38,10 +37,10 @@ func _ready():
 		push_error("Unable to start server.")
 		set_process(false)
 
-
 func _process(_delta):
 	if Time.get_unix_time_from_system() - last_activity > 3600:
 		print("Idle 1h – quitting.")
+		stop_session()
 		get_tree().quit()
 
 	while _tcp_server.is_connection_available():
@@ -54,9 +53,15 @@ func _process(_delta):
 	# Iterate over all connected peers using "keys()" so we can erase in the loop
 	for peer_id in _peers.keys():
 		var peer = _peers[peer_id]
-
 		peer.poll()
-
+		
+		var err = peer.send_text("ping")
+		if err != OK:
+			print("- Peer %s disconnected (send failed)" % peer_id)
+			_peers.erase(peer_id)
+			player_leave(peer_id)
+		
+			
 		var peer_state = peer.get_ready_state()
 		if peer_state == WebSocketPeer.STATE_OPEN:
 			if not peer.has_meta("sent_world"):
@@ -85,14 +90,90 @@ func _process(_delta):
 					# Echo the packet back.
 					# peer.send(packet)
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
-			# Remove the disconnected peer.
-			_peers.erase(peer_id)
-			var code = peer.get_close_code()
-			var reason = peer.get_close_reason()
-			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
+			pass
+
+func player_join(peer_id: String):
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_join_request_completed)
+
+	var data = {
+		"session_token": session_token,
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % peer_id]
+
+	var error = http_request.request("https://game.3dquests.com/join", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_join_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+
+func player_leave(peer_id: String):
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_join_request_completed)
+	var data = {
+		"campaignId": campaign_id,
+		"session_token": session_token,
+	}
+
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % peer_id]
+
+	var error = http_request.request("https://game.3dquests.com/leave", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+	#http_request.queue_free()
+
+func _http_leave_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get active session: %s" % response_code)
+		return
+	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from session API")
+		return
+
+func stop_session():
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+
+	http_request.request_completed.connect(self._http_stop_session_request_completed)
+	var data = {
+		"campaignId": campaign_id,
+		"session_token": session_token,
+	}
+	var json = JSON.stringify(data)
+	var headers = ["Content-Type: application/json"]
+	var error = http_request.request("https://game.3dquests.com/stop_session", headers, HTTPClient.METHOD_POST, json)
+	if error != OK:
+		print("An error occurred in the HTTP request.")
+
+func _http_stop_session_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to stop server: %s" % response_code)
+		return
+	
+	print("Server stopped successfully.")
 
 # To make sure no more than one person can move an object at a time
-var object_owners: Dictionary[String, String] = {}
+var object_owners: Dictionary[int, String] = {}
 
 func handle_packet(peer_id: String, data: Dictionary):
 	match data.type:
@@ -121,10 +202,11 @@ func handle_first_contact(peer_id: String, data: Dictionary):
 	_peers[user_id] = _peers[peer_id]
 	_peers.erase(peer_id)
 	print("Peer %s identified as user %s" % [peer_id, user_id])
+	#player_join()
 
 func handle_place(peer_id: String, data: Dictionary):
 	last_object_id += 1
-	var obj_id = str(last_object_id)
+	var obj_id = last_object_id
 	objects[obj_id] = {
 		"mesh": data.mesh,
 		"position": data.position,
@@ -144,7 +226,7 @@ func handle_place(peer_id: String, data: Dictionary):
 	
 
 func handle_update(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not objects.has(data.obj_id):
 		print("Peer %s tried to update missing object %s" % [peer_id, data.obj_id])
 		return
@@ -163,7 +245,7 @@ func handle_update(peer_id: String, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 
 func handle_delete(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not objects.has(obj_id):
 		print("Peer %s tried to delete missing object %s" % [peer_id, data.obj_id])
 		return
@@ -179,7 +261,7 @@ func handle_delete(peer_id: String, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 
 func handle_pickup(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not objects.has(obj_id):
 		print("Peer %s tried to pick up missing object %s" % [peer_id, obj_id])
 	
@@ -202,7 +284,7 @@ func handle_pickup(peer_id: String, data: Dictionary):
 	last_activity = Time.get_unix_time_from_system()
 	
 func handle_drop(peer_id: String, data: Dictionary):
-	var obj_id = data.obj_id
+	var obj_id = int(data.obj_id)
 	if not object_owners.has(obj_id):
 		print("Peer %s tried to drop object %s, but it’s not held" % [peer_id, obj_id])
 		return
@@ -239,8 +321,6 @@ func send_world_state(peer_id):
 		"objects": obj_list
 	}))
 	last_activity = Time.get_unix_time_from_system()
-
-	
 	
 func broadcast(data: Dictionary):
 	var text = JSON.stringify(data)

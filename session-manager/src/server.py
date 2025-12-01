@@ -5,33 +5,36 @@ from .manager import ServerManager
 from .utils import (
     get_auth_jwt,
     verify_jwt,
-    user_can_access_campaign,
     is_existing_session,
-    add_new_session,
     player_join,
     player_left,
     check_how_many_players,
-    update_closed_server
+    close_session
 )
-from .db import db
+from .db import pool, get_pool
 import secrets
 import asyncio
 import websockets
 
+manager = ServerManager()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await db.connect()
+    global manager
+    await manager.load_active_sessions()
+    await get_pool()
     print("Database connected")
     try:
         yield
     finally:
         # Shutdown
-        await db.disconnect()
+        if pool is not None:
+            await pool.close()
         print("Database disconnected")
 
 app = FastAPI(lifespan=lifespan)
-manager = ServerManager()
+
 
 
 origins = [
@@ -70,21 +73,15 @@ async def start_session(request: Request):
     
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
-    #user_can = await user_can_access_campaign(user_id, campaign_id)
-
-    #if !user_can:
-    #    raise HTTPException(status_code=403, detail="Access denied to campaign")
     
     existing_session = await is_existing_session(campaign_id)
     if existing_session:
-        return {"status": "existing", "session_token": existing_session.awsSessionId}
-        
+        if manager._process_alive(existing_session["pid"]):
+            return {"status": "existing", "session_token": existing_session.awsSessionId}
+        else:
+            await manager.stop_server(campaign_id)
 
     session_token = secrets.token_hex(32)
-    
-    created = await add_new_session(campaign_id, session_token)
-    if not created:
-        raise HTTPException(status_code=500, detail="Failed to create session")
     
     process = await manager.start_server(campaign_id, session_token)
     return {"status": "started", "pid": process.pid, "session_token": session_token}
@@ -93,10 +90,11 @@ async def start_session(request: Request):
 async def stop_session(request: Request):
     data = await request.json()
     campaign_id = data["campaignId"]
+    session_token = data["session_token"]
     if not campaign_id:
         raise HTTPException(status_code=400, detail="Missing campaign_id")
     await manager.stop_server(campaign_id)
-    await update_closed_server(campaign_id)
+    await close_session(session_token)
     return {"status": "stopped"}
 
 @app.post("/join")
@@ -138,7 +136,7 @@ async def leave(request: Request):
     count = await check_how_many_players(session_token)
     if count == 0:
         await manager.stop_server(campaign_id)
-        await update_closed_server(session_token)
+        await close_session(session_token)
 
     return {"status": "left"}
 
