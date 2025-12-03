@@ -134,3 +134,16 @@ enum Role {
   GM
   PLAYER
 }
+
+model Image {
+  id          String   @id @default(cuid())
+  filename    String
+  s3Key       String   // S3 object key
+  url         String   // Full S3 URL
+  mimeType    String   // image/png, image/jpeg
+  size        Int      // File size in bytes
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  @@map("user_images")
+}

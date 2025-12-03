@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
-
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Upload, XCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react';
+import { authClient } from "@/lib/auth-client"
+import { useRouter } from 'next/navigation'; 
 
 type UploadStatus = 'idle' | 'pending' | 'success' | 'error';
 
-//function to format file sizes
+// Function to format file sizes
 const formatFileSize = (bytes: number, decimalPoint: number = 2): string => {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -16,16 +17,37 @@ const formatFileSize = (bytes: number, decimalPoint: number = 2): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 5; //5MB
 const API_ENDPOINT = '/api/upload';
 
+interface UploadResponse {
+  success: boolean;
+  image?: {
+    id: string;
+    url: string;
+    filename: string;
+  };
+  error?: string;
+}
+
 export default function AddMap() {
+const session = authClient.getSession();
+
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [message, setMessage] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const { data: sessionState } = authClient.useSession();
+  const router = useRouter();
+  
+  // Check authentication on mount
+  useEffect(() => {
+    if (sessionState.status !== 'authenticated') {
+      router.push('/login'); // Redirect to login if not authenticated
+    }
+  }, [session];
 
-  // select image files from user device
+  // Select image files from user device
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] || null;
 
@@ -36,23 +58,34 @@ export default function AddMap() {
 
     if (selectedFile) {
       // Validate file type and size
-      if (!['image/jpeg', 'image/png'].includes(selectedFile.type)) {
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(selectedFile.type)) {
         setMessage('Only JPEG or PNG files are allowed.');
         setStatus('error');
         return;
       }
+      
       if (selectedFile.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
         setMessage(`File size exceeds ${MAX_FILE_SIZE_MB}MB.`);
         setStatus('error');
         return;
       }
+      
       setFile(selectedFile);
-      setMessage(`Ready for uploading: ${selectedFile.name}`);
+      setMessage(`Ready to upload: ${selectedFile.name}`);
+      setStatus('idle');
     }
   }, []);
 
-  // Simulates upload process to AWS server.
+  // Upload image to AWS server
   const handleUpload = useCallback(async () => {
+    // Check authentication
+    if (sessionStatus !== 'authenticated' || !session) {
+      setMessage('Please log in to upload images.');
+      setStatus('error');
+      router.push('/login');
+      return;
+    }
+
     if (!file) {
       setMessage('Please select a file first.');
       setStatus('error');
@@ -63,47 +96,133 @@ export default function AddMap() {
     setMessage(`Uploading "${file.name}"...`);
     setUploadProgress(0);
 
-    //  Simulating The Upload Progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev < 90) return prev + 5;
-        // Don't clear the interval here, let the fetch success/error do it
-        return prev;
-      });
-    }, 200);
-    // Prepare form data
+    // Prepare form data - ONLY include 'image' field 
     const formData = new FormData();
-    formData.append('image', file);
-    formData.append('fileName', file.name);
+    formData.append('image', file); // Key must be 'image' exactly
 
     try {
-      // This is the API call
+      // Simulate progress 
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev < 90) return prev + 10; // Slower increment
+          return prev;
+        });
+      }, 300);
+
+      // API call
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         body: formData,
+        // Note: Don't set Content-Type header - browser sets it automatically for FormData
       });
 
-      // Clear the progress simulation
+      // Clear progress simulation
       clearInterval(progressInterval);
+      setUploadProgress(100);
 
       if (response.ok) {
-        const result = await response.json();
-        setUploadProgress(100);
-        setStatus('success');
-        setMessage(`File Upload successful! URL: ${result.url}`);
+        const result: UploadResponse = await response.json();
+        
+        if (result.success && result.image) {
+          setStatus('success');
+          setMessage(`Upload successful! Image URL: ${result.image.url}`);
+          
+          // Reset file after successful upload
+          setTimeout(() => {
+            setFile(null);
+            setStatus('idle');
+            setMessage('');
+            setUploadProgress(0);
+          }, 3000);
+        } else {
+          throw new Error(result.error || 'Upload failed');
+        }
       } else {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${response.statusText}. Detail: ${errorText.substring(0, 100)}`);
+        // Handle HTTP errors
+        let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If response is not JSON, try to get text
+          const text = await response.text();
+          if (text) errorMessage = `${errorMessage}. Details: ${text.substring(0, 100)}`;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
-      clearInterval(progressInterval);
-      setUploadProgress(0);
       setStatus('error');
-      setMessage(`Upload failed. ${error instanceof Error ? error.message : 'Unknown error.'}`);
+      setUploadProgress(0);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          setMessage('Session expired. Please log in again.');
+          router.push('/login');
+        } else {
+          setMessage(`Upload failed: ${error.message}`);
+        }
+      } else {
+        setMessage('Upload failed: Unknown error');
+      }
     }
-  }, [file]);
+  }, [file, session, sessionStatus, router]);
 
-  const buttonDisabled = status === 'pending' || !file;
+  // Use real upload progress with XMLHttpRequest (alternative implementation)
+  const handleUploadWithRealProgress = useCallback(() => {
+    if (!file || !session) return;
+
+    setStatus('pending');
+    setMessage(`Uploading "${file.name}"...`);
+    setUploadProgress(0);
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('image', file);
+
+    xhr.open('POST', API_ENDPOINT);
+
+    // Handle progress events
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        setUploadProgress(Math.round(percentComplete));
+      }
+    });
+
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            const result: UploadResponse = JSON.parse(xhr.responseText);
+            if (result.success && result.image) {
+              setStatus('success');
+              setMessage(`Upload successful! Image URL: ${result.image.url}`);
+              setUploadProgress(100);
+            } else {
+              throw new Error(result.error || 'Upload failed');
+            }
+          } catch (error) {
+            setStatus('error');
+            setMessage('Failed to parse server response');
+          }
+        } else {
+          setStatus('error');
+          setMessage(`Upload failed: ${xhr.statusText}`);
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      setStatus('error');
+      setMessage('Network error during upload');
+    };
+
+    xhr.send(formData);
+  }, [file, session]);
+
+  const buttonDisabled = status === 'pending' || !file || sessionStatus !== 'authenticated';
   const isImageSelected = useMemo(() => file && file.type.startsWith('image/'), [file]);
 
   const statusColors = useMemo(() => {
@@ -119,6 +238,18 @@ export default function AddMap() {
     }
   }, [status]);
 
+  // Show loading while checking authentication
+  if (sessionStatus === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          <p className="mt-2">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="w-full flex flex-col bg-gray-100 p-4 rounded-lg shadow max-w-sm mx-auto">
@@ -127,7 +258,7 @@ export default function AddMap() {
           Upload Image to Game
         </h1>
         <p className="text-gray-600 mb-8">
-          Select an image (JPEG, or PNG) to upload. Max size: {MAX_FILE_SIZE_MB}MB.
+          Select an image (JPEG or PNG) to upload. Max size: {MAX_FILE_SIZE_MB}MB.
         </p>
 
         <div className="mb-8">
@@ -136,31 +267,34 @@ export default function AddMap() {
             className={`flex flex-col items-center justify-center p-8 rounded-xl cursor-pointer transition-all duration-200 ease-in-out
               ${isImageSelected ? 'border-2 border-dashed border-indigo-400 bg-indigo-50 hover:bg-indigo-100' : 'border-2 border-dashed border-gray-300 bg-white hover:bg-gray-50'}
               ${status === 'error' ? 'border-red-500 bg-red-50 hover:bg-red-100' : ''}
-              ${status === 'pending' ? 'pointer-events-none' : ''}
+              ${status === 'pending' ? 'pointer-events-none opacity-70' : ''}
             `}
           >
             <input
               id="file-upload"
               type="file"
-              accept="image/png, image/jpeg"
+              accept="image/png, image/jpeg, image/jpg"
               onChange={handleFileChange}
               className="sr-only"
-              disabled={status === 'pending'}
+              disabled={status === 'pending' || sessionStatus !== 'authenticated'}
             />
             <ImageIcon className={`w-10 h-10 ${isImageSelected ? 'text-indigo-600' : 'text-gray-400'} mb-2 transition-colors`} />
             <p className="text-lg font-semibold text-gray-700 text-center">
-              {file ? file.name : 'Click to select image or drag and drop'}
+              {file ? file.name : 'Click to select image'}
             </p>
             {file && (
               <p className="text-sm text-gray-500 mt-1">
                 Size: {formatFileSize(file.size)}
               </p>
             )}
+            {sessionStatus !== 'authenticated' && (
+              <p className="text-sm text-red-500 mt-2">Please log in to upload</p>
+            )}
           </label>
         </div>
 
         <button
-          onClick={handleUpload}
+          onClick={handleUpload} // or use handleUploadWithRealProgress for real progress
           disabled={buttonDisabled}
           className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 ease-in-out shadow-md
             ${buttonDisabled
@@ -186,7 +320,7 @@ export default function AddMap() {
         {message && (
           <div className={`mt-6 p-4 rounded-xl border flex items-start text-sm ${statusColors.className}`}>
             <statusColors.icon className={`w-5 h-5 mr-3 flex-shrink-0 ${statusColors.className.split(' ')[0]}`} />
-            <p className="font-medium whitespace-pre-wrap">{message}</p>
+            <p className="font-medium whitespace-pre-wrap break-words">{message}</p>
           </div>
         )}
 
@@ -198,7 +332,7 @@ export default function AddMap() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
-                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500"
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               ></div>
             </div>
@@ -208,4 +342,4 @@ export default function AddMap() {
       </div>
     </div>
   );
-};
+}

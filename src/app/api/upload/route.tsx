@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]';
+import { prisma } from '../lib/prisma';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid'; //generates unique IDs for images
 
-// Initialize S3 client
 const s3Client = new S3Client({
   region: process.env.AWS_REGION!,
   credentials: {
@@ -10,60 +13,90 @@ const s3Client = new S3Client({
   },
 });
 
-export async function POST(request: Request) {
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
-    // Validate environment variables
-    if (!process.env.AWS_REGION || !process.env.AWS_BUCKET_NAME || !process.env.AWS_ACCESS_KEY || !process.env.AWS_USER_SECRET) {
-      console.error('Server configuration error: Missing AWS environment variables.');
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    const session = await getServerSession(req, res, authOptions);
+    
+    if (!session?.user?.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const formData = await request.formData();
-    const file = formData.get('image') as File | null;
-
+    // Parse multipart form data
+    const formData = await req.formData();
+    const file = formData.get('image') as File;
+    
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    // Security validation (Type & Size)
-    const allowedTypes = ['image/jpeg', 'image/png'];
+    // Validate file type, note: only jpeg, jpg, png (Godot doesn’t work well with gif)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: `Invalid file type. Only JPEG, and PNG allowed.` }, { status: 400 });
+      return res.status(400).json({ error: 'Invalid file type' });
     }
 
-    // File size limit (10MB)
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 400 });
+      return res.status(400).json({ error: 'File is too large' });
     }
 
-    // Process file
-    const buffer = Buffer.from(await file.arrayBuffer());
-    // Filename sanitization
-    const fileName = `images/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Generate unique filename
+    const fileExtension = file.name.split('.').pop();
+    const s3Key = `users/${session.user.id}/${uuidv4()}.${fileExtension}`;
 
     // Upload to S3
-    await s3Client.send(new PutObjectCommand({
+    const uploadParams = {
       Bucket: process.env.AWS_BUCKET_NAME!,
-      Key: fileName,
+      Key: s3Key,
       Body: buffer,
       ContentType: file.type,
-    }));
+      ACL: 'public-read' as const,
+    };
 
-    // Construct object key URL (NOTE: This URL will only work if the object is retrieved via a pre-signed URL)
-    const imageUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-
-    // TODO: Figure out how to Save to database with user association
+    await s3Client.send(new PutObjectCommand(uploadParams));
     
+    const s3Url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
 
-    return NextResponse.json({
-      success: true,
-      url: imageUrl,
-      message: 'Image uploaded successfully'
+    // Save to database
+    const image = await prisma.image.create({
+      data: {
+        filename: file.name,
+        s3Key,
+        url: s3Url,
+        mimeType: file.type,
+        size: file.size,
+        userId: session.user.id,
+      },
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      image: {
+        id: image.id,
+        url: image.url,
+        filename: image.filename
+      }
     });
 
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Upload failed. Please try again.' }, { status: 500 });
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
