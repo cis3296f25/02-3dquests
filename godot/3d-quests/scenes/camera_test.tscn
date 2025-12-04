@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=17 format=3 uid="uid://dwcpw05no3g37"]
 
 [ext_resource type="Script" uid="uid://cmbbtr1i411hs" path="res://scripts/client.gd" id="1_16sdf"]
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://do0kulb71j5y3" path="res://scripts/open_menu_control.gd" id="6_gtwgr"]
 [ext_resource type="Script" uid="uid://dewq1fg415okm" path="res://scripts/edit_popup_panel.gd" id="6_lahmr"]
 [ext_resource type="Script" uid="uid://cxe7owfrxbs2n" path="res://scripts/save_and_load.gd" id="6_tt3eh"]
+[ext_resource type="Script" uid="uid://1a3sakjxv458" path="res://scripts/new_map_popup.gd" id="8_mmtaj"]
+[ext_resource type="Script" uid="uid://cqketgsgqly2q" path="res://scripts/load_map_popup.gd" id="9_063i4"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l4yd"]
 albedo_color = Color(0, 1, 0, 1)
@@ -100,15 +102,15 @@ layout_mode = 2
 
 [node name="NewButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
-text = "New"
+text = "New Map"
 
 [node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
-text = "Save"
+text = "Save Map"
 
 [node name="LoadButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
-text = "Load"
+text = "Load Map"
 
 [node name="OpenMenu" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -221,6 +223,53 @@ layout_mode = 2
 [node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Close"
+
+[node name="NewMapPopup" type="PopupPanel" parent="UILayer/NewUIControl"]
+script = ExtResource("8_mmtaj")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/NewMapPopup"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="NewMapNameLabel" type="Label" parent="UILayer/NewUIControl/NewMapPopup/VBoxContainer"]
+layout_mode = 2
+text = "New Map Name:"
+
+[node name="LineEdit" type="LineEdit" parent="UILayer/NewUIControl/NewMapPopup/VBoxContainer"]
+layout_mode = 2
+
+[node name="Create" type="Button" parent="UILayer/NewUIControl/NewMapPopup/VBoxContainer"]
+layout_mode = 2
+text = "Create"
+
+[node name="Cancel" type="Button" parent="UILayer/NewUIControl/NewMapPopup/VBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="LoadMapPopup" type="PopupPanel" parent="UILayer/NewUIControl"]
+script = ExtResource("9_063i4")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/LoadMapPopup"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="MapNameList" type="ItemList" parent="UILayer/NewUIControl/LoadMapPopup/VBoxContainer"]
+clip_contents = false
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Confirm" type="Button" parent="UILayer/NewUIControl/LoadMapPopup/VBoxContainer"]
+layout_mode = 2
+text = "Confirm"
+
+[node name="Cancel" type="Button" parent="UILayer/NewUIControl/LoadMapPopup/VBoxContainer"]
+layout_mode = 2
+text = "Cancel"
 
 [node name="MainUIControl" type="Control" parent="UILayer"]
 visible = false

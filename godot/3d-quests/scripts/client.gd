@@ -25,7 +25,7 @@ func _ready():
 		print("DEBUG MODE!!!")
 	else:
 		print("RELEASE MODE.")
-	get_session_token()
+		get_session_token()
 
 func get_session_token():
 	var http_request = HTTPRequest.new()

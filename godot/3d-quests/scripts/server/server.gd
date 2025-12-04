@@ -9,10 +9,10 @@ var _peers: Dictionary[String, WebSocketPeer] = {}
 var last_peer_id := 0
 
 # Authoritative object storage
-var objects: Dictionary[int, Dictionary] = {}  # object_id -> {mesh, position, rotation}
+var objects: Dictionary = {}  # object_id -> {mesh, position, rotation}
 var last_object_id := 0
 
-var maps: Array[String] = []
+var maps = []
 var current_map_name: String = ""
 
 var port = ""
@@ -59,11 +59,12 @@ func _process(_delta):
 		var peer = _peers[peer_id]
 		peer.poll()
 		
-		var err = peer.send_text("ping")
-		if err != OK:
-			print("- Peer %s disconnected (send failed)" % peer_id)
-			_peers.erase(peer_id)
-			player_leave(peer_id)
+		if peer.has_meta("sent_world"):
+			var err = peer.send_text("ping")
+			if err != OK:
+				print("- Peer %s disconnected (send failed)" % peer_id)
+				_peers.erase(peer_id)
+				player_leave(peer_id)
 		
 			
 		var peer_state = peer.get_ready_state()
@@ -96,18 +97,18 @@ func _process(_delta):
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
 			pass
 
-func player_join(peer_id: String):
+func player_join(user_id: String):
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
 
 	http_request.request_completed.connect(self._http_join_request_completed)
 
 	var data = {
-		"session_token": session_token,
+		"session_token": session_token
 	}
 
 	var json = JSON.stringify(data)
-	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % peer_id]
+	var headers = ["Content-Type: application/json", "Authorization: Bearer %s" % user_id]
 
 	var error = http_request.request("https://game.3dquests.com/join", headers, HTTPClient.METHOD_POST, json)
 	if error != OK:
@@ -116,12 +117,12 @@ func player_join(peer_id: String):
 
 func _http_join_request_completed(result, response_code, headers, body):
 	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
+		print("Failed to join active session: %s" % response_code)
 		return
 	
 	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
+	var error = json.parse(body.get_string_from_utf8())
+	if error != OK:
 		print("Failed to parse JSON from session API")
 		return
 
@@ -145,12 +146,12 @@ func player_leave(peer_id: String):
 
 func _http_leave_request_completed(result, response_code, headers, body):
 	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
+		print("Failed to leave active session: %s" % response_code)
 		return
 	
 	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
+	var error = json.parse(body.get_string_from_utf8())
+	if error != OK:
 		print("Failed to parse JSON from session API")
 		return
 
@@ -176,31 +177,6 @@ func _http_stop_session_request_completed(result, response_code, headers, body):
 		return
 	
 	print("Server stopped successfully.")
-	
-func get_last_map():
-	var http_request = HTTPRequest.new()
-	add_child(http_request)
-
-	http_request.request_completed.connect(self._http_get_last_map_request_completed)
-	var error = http_request.request("https://game.3dquests.com/get_last_map?campaign_id=" + campaign_id, [], HTTPClient.METHOD_GET)
-	if error != OK:
-		print("An error occurred in the HTTP request.")
-
-func _http_get_last_map_request_completed(result, response_code, headers, body):
-	if response_code != 200:
-		print("Failed to stop server: %s" % response_code)
-		return
-		
-	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
-		print("Failed to get JSON from last map")
-	
-	var data = json.get_data()
-	current_map_name = data["last_map_name"]
-	objects = data["objects"]
-	
-	print("Got last map played.")
 
 # To make sure no more than one person can move an object at a time
 var object_owners: Dictionary[int, String] = {}
@@ -217,6 +193,9 @@ func handle_packet(peer_id: String, data: Dictionary):
 			handle_pickup(peer_id, data)
 		"drop_object":
 			handle_drop(peer_id, data)
+		"new_map":
+			new_map(data)
+			broadcast_world_state()
 		"save_map":
 			save_map()
 		"load_map":
@@ -237,7 +216,7 @@ func handle_first_contact(peer_id: String, data: Dictionary):
 	_peers[user_id] = _peers[peer_id]
 	_peers.erase(peer_id)
 	print("Peer %s identified as user %s" % [peer_id, user_id])
-	player_join(peer_id)
+	player_join(user_id)
 
 func handle_place(peer_id: String, data: Dictionary):
 	last_object_id += 1
@@ -363,7 +342,12 @@ func broadcast(data: Dictionary):
 	for p in _peers.values():
 		if p.get_ready_state() == WebSocketPeer.STATE_OPEN:
 			p.send_text(text)
-			
+
+func new_map(data):
+	current_map_name = data.map_name
+	objects = {}
+	save_map()
+	
 			
 func save_map():
 	var http_request = HTTPRequest.new()
@@ -386,12 +370,12 @@ func save_map():
 
 func _http_save_request_completed(result, response_code, headers, body):
 	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
+		print("Failed to save map: %s" % response_code)
 		return
 	
 	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
+	var error = json.parse(body.get_string_from_utf8())
+	if error != OK:
 		print("Failed to parse JSON from session API")
 		return
 	print("Map saved successfully")
@@ -409,23 +393,25 @@ func load_maps():
 
 func _http_load_request_completed(result, response_code, headers, body):
 	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
+		print("Failed to load maps: %s" % response_code)
 		return
 	
 	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
+	var error = json.parse(body.get_string_from_utf8())
+	if error != OK:
 		print("Failed to parse JSON from session API")
 		return
 	var data = json.get_data()
-	maps = data["maps"] # API returns { "maps": ["map_name1"] }
+	maps = data["maps"] # API returns { "maps": ["map_name1"], "current_map_name": "name", "objects": "{}" }
 	current_map_name = data["current_map_name"]
+	objects = data["current_objs"]
 	print("Maps loaded")
 	
 	broadcast({
 		"type": "load_maps",
 		"maps": maps,
-		"current_map_name": current_map_name
+		"current_map_name": current_map_name,
+		"current_objs": objects
 	})
 	
 	print("Maps sent")
@@ -441,12 +427,12 @@ func load_objects_from_specific_map(data: Dictionary):
 		
 func _http_load_objects_request_completed(result, response_code, headers, body):
 	if response_code != 200:
-		print("Failed to get active session: %s" % response_code)
+		print("Failed to load objects from current map: %s" % response_code)
 		return
 	
 	var json = JSON.new()
-	var text = json.parse(body.get_string_from_utf8())
-	if text.error != OK:
+	var error = json.parse(body.get_string_from_utf8())
+	if error != OK:
 		print("Failed to parse JSON from session API")
 		return
 	objects = json.get_data()["objects"] # API Returns { "objects": { "obj_id1": ... } }
