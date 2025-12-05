@@ -40,8 +40,11 @@ func _ready():
 	else:
 		push_error("Unable to start server.")
 		set_process(false)
+		
+var ping_timer = 0.0
 
 func _process(_delta):
+	ping_timer += _delta
 	if Time.get_unix_time_from_system() - last_activity > 3600:
 		print("Idle 1h – quitting.")
 		stop_session()
@@ -59,12 +62,14 @@ func _process(_delta):
 		var peer = _peers[peer_id]
 		peer.poll()
 		
-		if peer.has_meta("sent_world"):
+		if ping_timer >= 30.0 and peer.has_meta("sent_world"):
 			var err = peer.send_text("ping")
 			if err != OK:
 				print("- Peer %s disconnected (send failed)" % peer_id)
 				_peers.erase(peer_id)
 				player_leave(peer_id)
+			else:
+				ping_timer = 0.0
 		
 			
 		var peer_state = peer.get_ready_state()
@@ -96,7 +101,9 @@ func _process(_delta):
 					# Echo the packet back.
 					# peer.send(packet)
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
-			pass
+			print("- Peer %s disconnected (send failed)" % peer_id)
+			_peers.erase(peer_id)
+			player_leave(peer_id)
 
 func player_join(user_id: String):
 	var http_request = HTTPRequest.new()
@@ -428,7 +435,8 @@ func _http_load_objects_request_completed(result, response_code, headers, body):
 	if error != OK:
 		print("Failed to parse JSON from session API")
 		return
-	objects = json.get_data()["objects"] # API Returns { "objects": { "obj_id1": ... } }
+	var data = json.get_data()
+	objects = data["current_objs"]
 	print("Got Objects")
 
 func broadcast_world_state():

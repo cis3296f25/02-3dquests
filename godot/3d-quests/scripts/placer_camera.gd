@@ -30,7 +30,7 @@ var placer_obj: Node3D
 
 #parent node
 @onready var camera_manager = get_parent().get_node("CameraTestManager")
-@onready var ui = get_parent().get_node("UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel")  # adjust path
+@onready var ui = get_parent().get_node("UILayer/HBoxContainerNewUIControl/MenuBar/EditMenu/PopupPanel")  # adjust path
 
 func _unhandled_input(event):
 	raycast.force_raycast_update()
@@ -57,6 +57,7 @@ func _unhandled_input(event):
 						if obj:
 							pick_up_object(obj)
 						elif camera_manager.can_place:
+							print("trying to place")
 							camera_manager.place_object()
 			MOUSE_BUTTON_WHEEL_UP: # Increases place distance
 				place_distance -= 1

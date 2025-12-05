@@ -137,6 +137,7 @@ func _process(_delta):
 		set_process(false) # Stop processing.
 		
 func handle_data_recieved(data_recieved: Dictionary):
+	print("handling: ", data_recieved)
 	match data_recieved.type:
 		"object_created":
 			add_object_to_props_container(data_recieved)
