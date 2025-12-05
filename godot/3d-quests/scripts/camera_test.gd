@@ -20,7 +20,6 @@ func _ready() -> void:
 	main_ui.save_button_pressed.connect(_save_button)
 	main_ui.load_button_pressed.connect(_load_button)
 	main_ui.open_menu_pressed.connect(_open_menu)
-	main_ui.close_button_pressed.connect(_close_button)
 	object_menu.object_selected.connect(_select_object)
 	save_system.load_obj.connect(_load_object)
 	

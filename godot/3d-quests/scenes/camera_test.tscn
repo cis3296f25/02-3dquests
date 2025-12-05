@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dwcpw05no3g37"]
+[gd_scene load_steps=19 format=3 uid="uid://dwcpw05no3g37"]
 
 [ext_resource type="Script" uid="uid://cmbbtr1i411hs" path="res://scripts/client.gd" id="1_16sdf"]
 [ext_resource type="PackedScene" uid="uid://b21q3fxfdbo5q" path="res://scenes/placer_camera.tscn" id="1_811nu"]
@@ -9,6 +9,10 @@
 [ext_resource type="Script" uid="uid://do0kulb71j5y3" path="res://scripts/open_menu_control.gd" id="6_gtwgr"]
 [ext_resource type="Script" uid="uid://dewq1fg415okm" path="res://scripts/edit_popup_panel.gd" id="6_lahmr"]
 [ext_resource type="Script" uid="uid://cxe7owfrxbs2n" path="res://scripts/save_and_load.gd" id="6_tt3eh"]
+[ext_resource type="Script" uid="uid://b11c244u1b470" path="res://scripts/gm_popup_panel.gd" id="8_mmtaj"]
+[ext_resource type="Script" uid="uid://bvwxe7nrygb1p" path="res://scripts/controls_popup_panel.gd" id="9_6dgdw"]
+[ext_resource type="Script" uid="uid://c3tl338vmyswg" path="res://scripts/mp_popup_panel.gd" id="10_44n42"]
+[ext_resource type="Script" uid="uid://cu03ldb6vkvmy" path="res://scripts/measure_popup_panel.gd" id="11_44n42"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4l4yd"]
 albedo_color = Color(0, 1, 0, 1)
@@ -80,7 +84,8 @@ text = "Edit"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/EditMenu"]
 oversampling_override = 1.0
-size = Vector2i(114, 233)
+position = Vector2i(0, 50)
+size = Vector2i(114, 210)
 visible = true
 script = ExtResource("6_lahmr")
 
@@ -88,14 +93,13 @@ script = ExtResource("6_lahmr")
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 110.0
-offset_bottom = 229.0
+offset_bottom = 206.0
 
 [node name="PlaceModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
 [node name="SnapModeLabel" type="Label" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
-text = "Save"
 
 [node name="SaveButton" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -108,10 +112,6 @@ text = "Load"
 [node name="OpenMenu" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Assets Menu"
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
 
 [node name="DeleteObjMode" type="CheckButton" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
@@ -127,20 +127,20 @@ text = "Game Master"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/GmMenu"]
 oversampling_override = 1.0
+position = Vector2i(90, 50)
+size = Vector2i(172, 50)
 visible = true
+script = ExtResource("8_mmtaj")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel"]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 96.0
-offset_bottom = 96.0
+offset_right = 168.0
+offset_bottom = 46.0
 
 [node name="ChangePermissions" type="Button" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
+text = "Change Permissions"
 
 [node name="ControlsMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
@@ -152,20 +152,20 @@ text = "Controls"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/ControlsMenu"]
 oversampling_override = 1.0
+position = Vector2i(215, 50)
+size = Vector2i(111, 50)
 visible = true
+script = ExtResource("9_6dgdw")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel"]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 96.0
-offset_bottom = 96.0
+offset_right = 107.0
+offset_bottom = 46.0
 
 [node name="HowTo" type="Button" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
+text = "How To Play"
 
 [node name="MultiplayerMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
@@ -177,20 +177,20 @@ text = "Multiplayer"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu"]
 oversampling_override = 1.0
+position = Vector2i(300, 50)
+size = Vector2i(100, 50)
+visible = true
+script = ExtResource("10_44n42")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel"]
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 96.0
-offset_bottom = 96.0
+offset_bottom = 46.0
 
 [node name="PlayerList" type="Button" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel/VBoxContainer"]
-visible = false
 layout_mode = 2
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
+text = "Player List"
 
 [node name="MeasureMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
@@ -202,23 +202,22 @@ text = "Measure"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/MeasureMenu"]
 oversampling_override = 1.0
+position = Vector2i(410, 50)
+size = Vector2i(100, 50)
+visible = true
+script = ExtResource("11_44n42")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel"]
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 96.0
-offset_bottom = 96.0
+offset_bottom = 46.0
 
 [node name="RulerButton" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
-visible = false
 layout_mode = 2
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
+text = "Ruler"
 
 [node name="MainUIControl" type="Control" parent="UILayer"]
-visible = false
 layout_mode = 3
 anchor_top = 0.105000004
 anchor_bottom = 0.105000004

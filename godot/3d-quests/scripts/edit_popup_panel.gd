@@ -4,14 +4,13 @@ signal place_mode_changed(enabled: bool)
 signal save_button_pressed
 signal load_button_pressed
 signal open_menu_pressed
-signal close_button_pressed
 
 @onready var save_button = $VBoxContainer/SaveButton
 @onready var load_button = $VBoxContainer/LoadButton
 @onready var open_menu = $VBoxContainer/OpenMenu
 @onready var place_mode_label = $VBoxContainer/PlaceModeLabel
 @onready var delete_obj_check = $VBoxContainer/DeleteObjMode
-@onready var close_button = $VBoxContainer/Close
+
 
 ### NEW — snap mode label
 @onready var snap_mode_label = $VBoxContainer/SnapModeLabel
@@ -28,13 +27,11 @@ func _ready() -> void:
 	save_button.disabled = placement_mode_enabled
 	load_button.disabled = placement_mode_enabled
 	open_menu.disabled = placement_mode_enabled
-	close_button.disabled = placement_mode_enabled
 
 	save_button.pressed.connect(_on_save_pressed)
 	load_button.pressed.connect(_on_load_pressed)
 	open_menu.pressed.connect(_on_open_menu_pressed)
 	delete_obj_check.toggled.connect(_on_delete_mode_toggled)
-	close_button.pressed.connect(_on_close_pressed)
 
 	update_mode_label()
 
@@ -42,7 +39,7 @@ func _ready() -> void:
 	update_snap_label(camera.snap)
 
 func open():
-	popup_centered()
+	popup()
 
 func _on_save_pressed():
 	save_button_pressed.emit()
@@ -53,8 +50,6 @@ func _on_load_pressed():
 func _on_open_menu_pressed():
 	open_menu_pressed.emit()
 
-func _on_close_pressed():
-	close_button_pressed.emit()
 
 func update_mode_label():
 	var mode_text = "Placement" if placement_mode_enabled else "Edit"
@@ -85,7 +80,6 @@ func _process(delta: float) -> void:
 		save_button.disabled = placement_mode_enabled
 		load_button.disabled = placement_mode_enabled
 		open_menu.disabled = placement_mode_enabled
-		close_button.disabled = placement_mode_enabled
 		delete_obj_check.disabled = placement_mode_enabled
 
 		place_mode_changed.emit(placement_mode_enabled)
