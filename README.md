@@ -5,47 +5,50 @@ For TTRPG (table-top role-playing game) consumers who need to play online,
 combines affordability, accessibility, and immersion to give the best experience 
 to the largest number of people.
 
-(Screenshot will be added later)
+<img width="1896" height="929" alt="3dquests-demo" src="https://github.com/user-attachments/assets/c31a85a4-3a93-43af-a9cd-3b19274815a4" />
 
-# How to run locally (for Windows)
-- Download zip file from latest release (Sprint 4 Demo, release 1.5)
-- Have installed node v22.20.02
-- Have installed npm and npx (it should come with node but just in case make sure to run npm -v and npx -v to see it installed)
-- Have godot installed: https://godotengine.org/download/windows/. (Extract .exe from zipped folder)
-- On the command line (or your choice of terminal run the following commands:
-```
-npm install
-```
-```
-npm install -g pnpm
-```
-```
-npx prisma generate 
-```
-```
-pnpm dev
-```
-
-To run game without signing in: 
-- Go To http://localhost:3000/mapmaker/3DQuestsServer.html in your choice of browser
-
-To run game with sign-in:
-- Contact 82chaudrys@gmail.com for .env file for database credentials to sign in
-- Click on http://localhost:3000/ which appears in terminal
+# How to run
+- Click on the website listed on the github repository. (3dquests.com)
+- Sign up/Log in
+- Create a campaign
+- Invite player(s)
+- You're now running the game!
 
 # How to play and test
-Read release notes for release 1.5
+## SWITCHING BETWEEN MODES
+By default, the game opens in ‘Edit’ mode as indicated in the top left corner of the
+screen, saying “Mode: Edit (Press P to toggle)”.
+Press P on the keyboard. The top left corner should now say “Mode: Placement
+(Press P to toggle)” to indicate that the game is in ‘Placement’ mode.
 
-# How to run local godot server on windows powershell
-```
-& "C:\Path\To\Godot\Godot_v4.5.1-stable_win64_console.exe" --headless --path "godot\3d-quests" --scene "res://scenes/server.tscn --port=9080"
-```
+## PLACING OBJECTS
+Make sure that the game is in ‘Placement’ mode.
+Click on any area of the screen to place an object. An opaque object should
+appear and stay in position even when the cursor navigates away from it.
 
-# How to run locally (for MacOS)
-Coming Soon...
+## ROTATING GHOST
+Press and hold Q, E, R, or F to rotate the ghost object.
 
-# How to contribute
-More to be added later... 
+## MOVING OBJECTS
+Set the game to ‘Edit’ mode.
+Hover the cursor over any object that has been placed.
+Click on the object and move the cursor around the map. The object should
+follow the cursor.
+Click again to place the object. The object should be placed and no longer follow
+the cursor.
 
-### How to build
-More to be added later...
+## DELETING OBJECTS
+Click the ‘Delete’ toggle in the top left corner of the screen.
+Click on any placed object. The object should disappear.
+
+## NAVIGATING THE MAP
+Press and hold W, A, S, D, Space, or LCtrl to move around the map. The
+camera should move forward, backward, left, right, up, and down respectively.
+
+## SAVING AND LOADING THE MAP
+Set the game to ‘Edit’ mode.
+Click the ‘Save’ button.
+Exit the game and reopen it.
+Click the ‘Load’ button. The objects previously placed on the map should load
+onto the map again in the same position and rotation.
+
