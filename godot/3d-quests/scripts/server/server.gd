@@ -71,6 +71,7 @@ func _process(_delta):
 		if peer_state == WebSocketPeer.STATE_OPEN:
 			if not peer.has_meta("sent_world"):
 				send_world_state(peer_id)
+				print(current_map_name)
 				peer.set_meta("sent_world", true)
 			while peer.get_available_packet_count():
 				var packet = peer.get_packet()
@@ -332,6 +333,7 @@ func send_world_state(peer_id):
 		obj_list.append(obj_data)
 	peer.send_text(JSON.stringify({
 		"type": "world_state_update",
+		"maps": maps,
 		"map_name": current_map_name,
 		"objects": obj_list
 	}))
@@ -345,10 +347,10 @@ func broadcast(data: Dictionary):
 
 func new_map(data):
 	current_map_name = data.map_name
+	maps.append(current_map_name)
 	objects = {}
 	save_map()
-	
-			
+
 func save_map():
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
@@ -406,15 +408,6 @@ func _http_load_request_completed(result, response_code, headers, body):
 	current_map_name = data["current_map_name"]
 	objects = data["current_objs"]
 	print("Maps loaded")
-	
-	broadcast({
-		"type": "load_maps",
-		"maps": maps,
-		"current_map_name": current_map_name,
-		"current_objs": objects
-	})
-	
-	print("Maps sent")
 	
 func load_objects_from_specific_map(data: Dictionary):
 	var http_request = HTTPRequest.new()

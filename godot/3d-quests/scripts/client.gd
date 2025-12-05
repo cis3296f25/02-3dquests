@@ -16,8 +16,8 @@ var ws_connected := false
 var local_objects: Dictionary[int, Node3D] = {}
 var first_packet_sent := false
 
-var maps: Array[String] = []
-var current_map_name = ""
+var maps: Array[String] = ["hello", "new"]
+var current_map_name = "hello"
 
 
 func _ready():
@@ -162,13 +162,13 @@ func handle_data_recieved(data_recieved: Dictionary):
 				obj.position = _parse_vector3_string(data_recieved.position)
 				obj.rotation = _parse_vector3_string(data_recieved.rotation)
 		"world_state_update":
+			maps = data_recieved["maps"]
 			current_map_name = data_recieved["map_name"]
+			print(maps)
+			print(current_map_name)
 			remove_objects()
 			for obj_data in data_recieved["objects"]:
 				add_object_to_props_container(obj_data)
-		"load_maps":
-			maps = data_recieved["maps"]
-			current_map_name = data_recieved["current_map_name"]
 
 func remove_objects():
 	for obj in local_objects.values():

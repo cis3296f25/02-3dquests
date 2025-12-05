@@ -1,12 +1,13 @@
 extends Control
 
 # Node references
-@onready var edit_menu_button = $MenuBar/EditMenu
+@onready var edit_menu_button = $HBoxContainer/MenuBar/EditMenu
 @onready var popup_panel = edit_menu_button.get_node("PopupPanel")
 @onready var root = get_tree().root.get_child(0)
 @onready var new_map_popup = $NewMapPopup
-@onready var edit_menu_popup = $MenuBar/EditMenu/PopupPanel
+@onready var edit_menu_popup = $HBoxContainer/MenuBar/EditMenu/PopupPanel
 @onready var load_map_popup = $LoadMapPopup
+@onready var current_map_label = $HBoxContainer/CurrentMapLabel
 
 
 func _ready() -> void:
@@ -24,6 +25,9 @@ func _ready() -> void:
 	
 	# Connecting signals from LoadMapPopup
 	load_map_popup.map_selected.connect(_on_map_load)
+	
+	# Set current map
+	current_map_label.text = "Current Map: " + root.current_map_name
 
 
 # ------------------------
@@ -32,6 +36,7 @@ func _ready() -> void:
 
 func _on_map_created(map_name: String):
 	root.new_map(map_name)
+	current_map_label.text = "Current Map: " + root.current_map_name
 
 func _on_new_pressed():
 	edit_menu_popup.hide()
@@ -51,7 +56,9 @@ func _on_load_pressed():
 	
 func _on_map_load(map_name: String):
 	root.load_map(map_name)
+	current_map_label.text = "Current Map: " + root.current_map_name
 	load_map_popup.hide()
+	
 
 func _on_open_menu_pressed():
 	print("Control detected OpenMenu pressed")
