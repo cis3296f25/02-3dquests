@@ -16,8 +16,8 @@ var ws_connected := false
 var local_objects: Dictionary[int, Node3D] = {}
 var first_packet_sent := false
 
-var maps: Array[String] = ["hello", "new"]
-var current_map_name = "hello"
+var maps: Array[String] = []
+var current_map_name = ""
 
 
 func _ready():
