@@ -261,12 +261,14 @@ var picked_object: Node3D = null
 
 func pick_up_object(obj: Node3D):
 	picked_object = obj
+	raycast.add_exception(picked_object)
 	root.pickup_object(obj.get_meta("obj_id"))
 
 func drop_object():
 	if picked_object:
 		root.drop_object(picked_object.get_meta("obj_id"), picked_object.global_position, picked_object.global_rotation)
 		picked_object = null
+		raycast.clear_exceptions()
 
 		
 func get_object_under_cursor() -> Node3D:

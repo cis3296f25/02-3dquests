@@ -30,7 +30,7 @@ func _ready():
 func get_session_token():
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
-	campaignId = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('campaignId') || ''")
+	#campaignId = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('campaignId') || ''")
 
 	http_request.request_completed.connect(self._http_connect_request_completed)
 
