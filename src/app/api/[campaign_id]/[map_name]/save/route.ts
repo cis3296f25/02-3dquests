@@ -2,31 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { toJSONSchema } from "better-auth";
 import { NextResponse } from "next/server";
 
-// export async function POST(req: Request) {
-//   try {
-//     const { campaignId, name, mapData } = await req.json();
-
-//     const map = await prisma.campaignMap.create({
-//       name: name,
-//       data: {
-//         campaignId,
-//         name,
-//         data: mapData,
-//       },
-//     });
-
-//     return NextResponse.json({ map, saved: true });
-  
-// } catch (error: any) {
-//     console.error("Error saving map: ", error);
-
-//     return NextResponse.json(
-//       { error: "Failed to save map." },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 interface Params {
   campaign_id: string;
   map_name: string
