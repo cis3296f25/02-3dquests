@@ -9,6 +9,7 @@ extends Node
 var campaignId: String = ""
 var session_token: String = ""
 var userId: String = ""
+var mapId = -1
 
 
 # Our WebSocketClient instance.
@@ -28,6 +29,7 @@ func _ready():
 	get_session_token()
 	
 	save_system.save_map_to_client.connect(_save_map)
+	save_system.load_map_to_client.connect(_load_map)
 
 
 func get_session_token():
@@ -152,25 +154,76 @@ func _http_leave_request_completed(result, response_code, headers, body):
 		print("Failed to parse JSON from session API")
 		return
 
-func _save_map(pos_array, rot_array, path_array):
+func _save_map(map_name, pos_array, rot_array, path_array):
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
-	var url = "https://www.3dquests.com/api/maps/save"
-	var header = "Content-Type: application/json"
+	var url = "https://www.3dquests.com/api/%s/%s/save" % [campaignId, map_name]
+	var headers = ["Content-Type: application/json"]
+	http_request.request_completed.connect(self._http_save_request_completed)
 	
 	var map_data = {
+		"id": mapId,
 		"po_arr": pos_array,
 		"r_arr": rot_array,
 		"pa_arr": path_array
 	}
 	var json = JSON.stringify(map_data)
 	
-	var error = http_request.request(url, header, HTTPClient.METHOD_POST, json)
+	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, json)
 	if error != OK:
-		print("An error ocurred in the HTTP request")
+		print("An error occurred in the save request")
+		
+func _http_save_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to save map: %s" % response_code)
+		return
 	
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	var data = text.result
+	if text.error != OK:
+		print("Failed to parse JSON from save API")
+		return
+	if data.has("id"):
+		mapId = data["id"]
+		print("Map saved successfully.")
 	
+func _load_map(map_name: String):
+	var http_request = HTTPRequest.new()
+	add_child(http_request)
+	var url = "https://www.3dquests.com/api/%s/%s/load" % [campaignId, map_name] 
+	http_request.request_completed.connect(self._http_load_request_completed)
+	
+	var error = http_request.request(url)
+	if error != OK:
+		print("Load request failed.")
 
+func _http_load_request_completed(result, response_code, headers, body):
+	if response_code != 200:
+		print("Error loading map: %s" % response_code)
+		return
+		
+	var json = JSON.new()
+	var text = json.parse(body.get_string_from_utf8())
+	if text.error != OK:
+		print("Failed to parse JSON from API")
+	var data = text.result
+	
+	if !data.has("success") or !data["success"]:
+		print("Failure to load map")
+		return
+	
+	if data.has("map_data"):
+		var map_data = data["map_data"] 
+		var obj_pos_array = map_data.get("pos", [])
+		var obj_rot_array = map_data.get("rot", [])
+		var obj_path_array = map_data.get("path", [])
+		for i in range(obj_pos_array.size()):
+			save_system.load_obj.emit(obj_pos_array[i], obj_rot_array[i], obj_path_array[i])
+	else:
+		print("Map data not sent by server. Unable to load map")
+		return
+		
 func _process(_delta):
 	if not ws_connected:
 		return

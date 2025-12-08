@@ -5,7 +5,8 @@ var obj_pos_array = []
 var obj_rot_array = []
 var obj_path_array = []
 signal load_obj(pos: Vector3, rot: Vector3, path: String)
-signal save_map_to_client(pos_arr, rot_arr, path_arr)
+signal save_map_to_client(map_name, pos_arr, rot_arr, path_arr)
+signal load_map_to_client(map_name)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -30,16 +31,8 @@ func save():
 	save_file.close()
 	
 	# Send to client to save to database
-	save_map_to_client.emit(obj_pos_array, obj_rot_array, obj_path_array)
+	save_map_to_client.emit("test_map", obj_pos_array, obj_rot_array, obj_path_array)
 
 # Loads objects from previous save 
-func load():
-	if FileAccess.file_exists(save_path):
-		var save_file = FileAccess.open(save_path, FileAccess.READ)
-		obj_pos_array = save_file.get_var()
-		obj_rot_array = save_file.get_var()
-		obj_path_array = save_file.get_var()
-		for i in range(obj_pos_array.size()):
-			load_obj.emit(obj_pos_array[i], obj_rot_array[i], obj_path_array[i])
-	else:
-		print("FILE LOAD ERROR: No data found.")
+func load():  
+	load_map_to_client.emit("test_map")
