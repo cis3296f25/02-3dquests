@@ -154,23 +154,17 @@ func _http_leave_request_completed(result, response_code, headers, body):
 		print("Failed to parse JSON from session API")
 		return
 
-func _save_map(map_name, pos_array, rot_array, path_array):
+func _save_map(map_name):
 	var http_request = HTTPRequest.new()
 	add_child(http_request)
 	var url = "https://www.3dquests.com/api/%s/%s/save" % [campaignId, map_name]
 	var headers = ["Content-Type: application/json"]
 	http_request.request_completed.connect(self._http_save_request_completed)
 	
-	var map_data = {
-		"id": mapId,
-		"po_arr": pos_array,
-		"r_arr": rot_array,
-		"pa_arr": path_array
-	}
 	var data = {
 		"campaignId": campaignId,
 		"map_name": map_name,
-		"map_data": map_data
+		"map_data": local_objects
 	}
 	var json = JSON.stringify(data)
 	
