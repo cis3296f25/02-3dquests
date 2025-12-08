@@ -333,7 +333,8 @@ func send_world_state(peer_id):
 	peer.send_text(JSON.stringify({
 		"type": "world_state_update",
 		"map_name": current_map_name,
-		"objects": obj_list
+		"objects": obj_list,
+		"world_state": objects
 	}))
 	last_activity = Time.get_unix_time_from_system()
 	
