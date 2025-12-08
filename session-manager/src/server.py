@@ -5,33 +5,39 @@ from .manager import ServerManager
 from .utils import (
     get_auth_jwt,
     verify_jwt,
-    user_can_access_campaign,
     is_existing_session,
-    add_new_session,
     player_join,
     player_left,
     check_how_many_players,
-    update_closed_server
+    close_session,
+    map_saved,
+    maps_loaded,
+    map_objects
 )
-from .db import db
+from .db import pool, get_pool
 import secrets
 import asyncio
 import websockets
 
+manager = ServerManager()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await db.connect()
+    global manager
+    await manager.load_active_sessions()
+    await get_pool()
     print("Database connected")
     try:
         yield
     finally:
         # Shutdown
-        await db.disconnect()
+        if pool is not None:
+            await pool.close()
         print("Database disconnected")
 
 app = FastAPI(lifespan=lifespan)
-manager = ServerManager()
+
 
 
 origins = [
@@ -70,21 +76,15 @@ async def start_session(request: Request):
     
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
-    #user_can = await user_can_access_campaign(user_id, campaign_id)
-
-    #if !user_can:
-    #    raise HTTPException(status_code=403, detail="Access denied to campaign")
     
     existing_session = await is_existing_session(campaign_id)
     if existing_session:
-        return {"status": "existing", "session_token": existing_session.awsSessionId}
-        
+        if manager._process_alive(existing_session["pid"]):
+            return {"status": "existing", "session_token": existing_session.awsSessionId}
+        else:
+            await manager.stop_server(campaign_id)
 
     session_token = secrets.token_hex(32)
-    
-    created = await add_new_session(campaign_id, session_token)
-    if not created:
-        raise HTTPException(status_code=500, detail="Failed to create session")
     
     process = await manager.start_server(campaign_id, session_token)
     return {"status": "started", "pid": process.pid, "session_token": session_token}
@@ -93,10 +93,12 @@ async def start_session(request: Request):
 async def stop_session(request: Request):
     data = await request.json()
     campaign_id = data["campaignId"]
+    session_token = data["session_token"]
+    last_map_name = data.get("last_map_name", "WorldMap")
     if not campaign_id:
         raise HTTPException(status_code=400, detail="Missing campaign_id")
     await manager.stop_server(campaign_id)
-    await update_closed_server(campaign_id)
+    await close_session(session_token, campaign_id, last_map_name)
     return {"status": "stopped"}
 
 @app.post("/join")
@@ -122,6 +124,7 @@ async def leave(request: Request):
     data = await request.json()
     session_token = data.get("session_token")
     campaign_id = data.get("campaignId")
+    last_map_name = data.get("last_map_name", "WorldMap")
     auth_header = request.headers.get("Authorization")
     jwt = get_auth_jwt(auth_header)
     payload = verify_jwt(jwt)
@@ -138,7 +141,7 @@ async def leave(request: Request):
     count = await check_how_many_players(session_token)
     if count == 0:
         await manager.stop_server(campaign_id)
-        await update_closed_server(session_token)
+        await close_session(session_token, campaign_id, last_map_name)
 
     return {"status": "left"}
 
@@ -197,3 +200,39 @@ async def get_active_session(request: Request):
     session = manager.active_sessions.get(campaign_id)
     print(session)
     return {"session_token": session["session_token"]}
+
+@app.post("/save_map")
+async def save_map(request: Request):
+    data = await request.json()
+    campaign_id = data.get("campaignId")
+    map_name = data.get("name")
+    map_data = data.get("data")
+    if not campaign_id or not map_name or not map_data:
+        raise HTTPException(status_code=400, detail="Missing campaignId or map name or map data")
+    
+    map_saved(campaign_id, map_name, map_data)
+    print(f"Saving {map_name} for campaig: {campaign_id}")  
+    
+    return {"status": "map saved"}
+
+@app.get("/load_maps")
+async def load_maps(campaign_id: str):
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Missing campaignId")
+    
+    map_data = maps_loaded(campaign_id)
+    if not map_data:
+        raise HTTPException(status_code=404, detail="Map not found")
+    
+    return {"maps": map_data}
+
+@app.get("/load_map_objects")
+async def load_map_objects(campaign_id: str, map_name: str):
+    if not campaign_id or not map_name:
+        raise HTTPException(status_code=400, detail="Missing campaignId or map name")
+    
+    object_data = map_objects(campaign_id, map_name)
+    if object_data is None:
+        raise HTTPException(status_code=404, detail="Map objects not found")
+    
+    return {"objects": object_data}

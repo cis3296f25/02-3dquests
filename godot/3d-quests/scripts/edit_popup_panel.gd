@@ -5,10 +5,12 @@ signal save_button_pressed
 signal load_button_pressed
 signal open_menu_pressed
 signal close_button_pressed
+signal new_button_pressed
 
 
 @onready var save_button = $VBoxContainer/SaveButton
 @onready var load_button = $VBoxContainer/LoadButton
+@onready var new_button = $VBoxContainer/NewButton
 @onready var snap_mode_label = $VBoxContainer/SnapModeLabel
 @onready var open_menu = $VBoxContainer/OpenMenu
 @onready var place_mode_label = $VBoxContainer/PlaceModeLabel
@@ -27,6 +29,7 @@ func _ready() -> void:
 	close_button.disabled = placement_mode_enabled
 	save_button.pressed.connect(_on_save_pressed)
 	load_button.pressed.connect(_on_load_pressed)
+	new_button.pressed.connect(_on_new_pressed)
 	open_menu.pressed.connect(_on_open_menu_pressed)
 	delete_obj_check.toggled.connect(_on_delete_mode_toggled)
 	close_button.pressed.connect(_on_close_pressed)
@@ -34,6 +37,9 @@ func _ready() -> void:
 
 func open():
 	popup_centered() 
+	
+func _on_new_pressed():
+	new_button_pressed.emit()
 
 func _on_save_pressed():
 	save_button_pressed.emit()
@@ -58,6 +64,7 @@ func _on_delete_mode_toggled(button_pressed: bool):
 		
 var delete_mode_in_scope = false
 # Called every frame. 'delta' is the elapsed time since the previous frame.
+
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("toggle_place"):
 		placement_mode_enabled = !placement_mode_enabled
@@ -69,6 +76,7 @@ func _process(delta: float) -> void:
 		update_mode_label()
 		save_button.disabled = placement_mode_enabled
 		load_button.disabled = placement_mode_enabled
+		save_button.disabled = placement_mode_enabled
 		open_menu.disabled = placement_mode_enabled
 		close_button.disabled = placement_mode_enabled
 		delete_obj_check.disabled = placement_mode_enabled
