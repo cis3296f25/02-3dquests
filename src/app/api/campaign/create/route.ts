@@ -27,6 +27,13 @@ export async function POST(req: Request) {
                     },
                 ],
             },
+            maps : {
+                create: [
+                    {
+                        data: {}
+                    }
+                ]
+            }
             },
         });
 
