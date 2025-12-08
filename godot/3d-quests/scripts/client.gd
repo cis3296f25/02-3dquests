@@ -193,10 +193,18 @@ func _load_map(map_name: String):
 	add_child(http_request)
 	var url = "https://www.3dquests.com/api/%s/%s/load" % [campaignId, map_name] 
 	http_request.request_completed.connect(self._http_load_request_completed)
+	var data = {
+		"campaignId": campaignId,
+		"map_name": map_name
+	}
+	var json = JSON.stringify(data)
 	
-	var error = http_request.request(url)
+	var headers = ["Content-Type: application/json"]
+	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, json)
 	if error != OK:
 		print("Load request failed.")
+		
+	
 
 func _http_load_request_completed(result, response_code, headers, body):
 	if response_code != 200:
