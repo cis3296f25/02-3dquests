@@ -3,17 +3,8 @@ import { success } from "better-auth";
 import { NextResponse } from "next/server";
 
 
-export async function POST(req: Request) {
-    try {
-
-        const { campaign_id, map_name } = await req.json();;
-
-        const map = await prisma.campaignMap.findFirst({
-            where: {
-                campaignId: campaign_id,
-                name: map_name
-            }
-        })
+export async function POST(req: Request, context: {params: Params}){
+    const {campaign_id, map_name} = context.params;
 
         if (!map) {
             return NextResponse.json({
