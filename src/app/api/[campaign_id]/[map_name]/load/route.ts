@@ -2,12 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { success } from "better-auth";
 import { NextResponse } from "next/server";
 
-interface Params {
-    campaign_id: string;
-    map_name: string;
-}
 
-export async function GET(req: Request, context: {params: Params}){
+export async function GET(req: Request, context: {params: {campaign_id: string, map_name: string}}) {
     const {campaign_id, map_name} = context.params;
 
     const map = await prisma.campaignMap.findFirst({
