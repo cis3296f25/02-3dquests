@@ -169,6 +169,7 @@ func _save_map(map_name, pos_array, rot_array, path_array):
 	}
 	var data = {
 		"campaignId": campaignId,
+		"map_name": map_name,
 		"map_data": map_data
 	}
 	var json = JSON.stringify(data)
