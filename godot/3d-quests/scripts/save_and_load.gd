@@ -31,7 +31,7 @@ func save():
 	save_file.close()
 	
 	# Send to client to save to database
-	save_map_to_client.emit("WorldMap", obj_pos_array, obj_rot_array, obj_path_array)
+	save_map_to_client.emit("WorldMap")
 
 # Loads objects from previous save 
 func load():  
