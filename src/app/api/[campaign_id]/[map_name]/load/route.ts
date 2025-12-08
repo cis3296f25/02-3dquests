@@ -2,44 +2,39 @@ import { prisma } from "@/lib/prisma";
 import { success } from "better-auth";
 import { NextResponse } from "next/server";
 
-interface Params {
-    campaign_id: string;
-    map_name: string;
-}
-
-export async function POST(req: Request, context: {params: Params}){
-    const {campaign_id, map_name} = context.params;
-
+export async function POST(req: Request) {
     try {
-    const map = await prisma.campaignMap.findFirst({
-        where: {
-            campaignId: campaign_id,
-            name: map_name
-        }
-    })
+        const { campaign_id, map_name } = await req.json();
 
-    if (!map) {
-        return NextResponse.json({
-            success: false,
-            error: "Map not found"
-        },
-        {status: 404}
-    );
-    }
+        const map = await prisma.campaignMap.findFirst({
+            where: {
+                campaignId: campaign_id,
+                name: map_name
+            }
+        })
+
+        if(!map) {
+                return NextResponse.json({
+                    success: false,
+                    error: "Map not found"
+                },
+                    { status: 404 }
+                );
+            }
 
     return NextResponse.json({
-        success: true,
-        map_data: map.data
-    },
-    {status: 200}
-    )
-} catch (error: any){
+                success: true,
+                map_data: map.data
+            },
+                { status: 200 }
+            )
+        } catch (error: any) {
     return NextResponse.json({
         success: false,
         error
-        
+
     },
-    {status: 400}
-)
+        { status: 400 }
+    )
 }
 }
