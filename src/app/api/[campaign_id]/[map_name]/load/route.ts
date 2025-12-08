@@ -7,7 +7,7 @@ interface Params {
     map_name: string;
 }
 
-export async function GET(req: Request, context: {params: Params}){
+export async function POST(req: Request, context: {params: Params}){
     const {campaign_id, map_name} = context.params;
 
     const map = await prisma.campaignMap.findFirst({
