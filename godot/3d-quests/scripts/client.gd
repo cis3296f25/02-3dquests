@@ -167,7 +167,11 @@ func _save_map(map_name, pos_array, rot_array, path_array):
 		"r_arr": rot_array,
 		"pa_arr": path_array
 	}
-	var json = JSON.stringify(map_data)
+	var data = {
+		"campaignId": campaignId,
+		"map_data": map_data
+	}
+	var json = JSON.stringify(data)
 	
 	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, json)
 	if error != OK:

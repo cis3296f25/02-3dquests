@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { campaignId, mapData } = await req.json();
+    const { campaignId, map_data } = await req.json();
 
     const newMap = await prisma.campaignMap.create({
       data: {
         campaignId,
-        data: mapData,
+        data: map_data,
       },
     });
 
