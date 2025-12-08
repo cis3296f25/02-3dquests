@@ -1,28 +1,54 @@
-# Project Name
-Put here a short paragraph describing your project. 
-Adding an screenshot or a mockup of your application in action would be nice.  
+# 3D-Quests
+For TTRPG (table-top role-playing game) consumers who need to play online, 
+3D-Quests is a free-to-play 3D VTT (virtual table top) web app, unlike D&D 
+(Dungeons and Dragons) Beyond's Signal 3D VTT or Roll20's 2D VTT. Our product 
+combines affordability, accessibility, and immersion to give the best experience 
+to the largest number of people.
 
-![This is a screenshot.](images.png)
+<img width="1896" height="929" alt="3dquests-demo" src="https://github.com/user-attachments/assets/c31a85a4-3a93-43af-a9cd-3b19274815a4" />
+
 # How to run
-Provide here instructions on how to use your application.   
-- Download the latest binary from the Release section on the right on GitHub.  
-- On the command line uncompress using
-```
-tar -xzf  
-```
-- On the command line run with
-```
-./hello
-```
-- You will see Hello World! on your terminal. 
+- Click on the website listed on the github repository. (3dquests.com)
+- Sign up/Log in
+- Create a campaign
+- Invite player(s)
+- You're now running the game!
 
-# How to contribute
-Follow this project board to know the latest status of the project: [http://...]([http://...])  
+# How to play and test
+## SWITCHING BETWEEN MODES
+By default, the game opens in ‘Edit’ mode as indicated in the top left corner of the
+screen, saying “Mode: Edit (Press P to toggle)”.
+Press P on the keyboard. The top left corner should now say “Mode: Placement
+(Press P to toggle)” to indicate that the game is in ‘Placement’ mode.
 
-### How to build
-- Use this github repository: ... 
-- Specify what branch to use for a more stable release or for cutting edge development.  
-- Use InteliJ 11
-- Specify additional library to download if needed 
-- What file and target to compile and run. 
-- What is expected to happen when the app start. 
+## PLACING OBJECTS
+Make sure that the game is in ‘Placement’ mode.
+Click on any area of the screen to place an object. An opaque object should
+appear and stay in position even when the cursor navigates away from it.
+
+## ROTATING GHOST
+Press and hold Q, E, R, or F to rotate the ghost object.
+
+## MOVING OBJECTS
+Set the game to ‘Edit’ mode.
+Hover the cursor over any object that has been placed.
+Click on the object and move the cursor around the map. The object should
+follow the cursor.
+Click again to place the object. The object should be placed and no longer follow
+the cursor.
+
+## DELETING OBJECTS
+Click the ‘Delete’ toggle in the top left corner of the screen.
+Click on any placed object. The object should disappear.
+
+## NAVIGATING THE MAP
+Press and hold W, A, S, D, Space, or LCtrl to move around the map. The
+camera should move forward, backward, left, right, up, and down respectively.
+
+## SAVING AND LOADING THE MAP
+Set the game to ‘Edit’ mode.
+Click the ‘Save’ button.
+Exit the game and reopen it.
+Click the ‘Load’ button. The objects previously placed on the map should load
+onto the map again in the same position and rotation.
+

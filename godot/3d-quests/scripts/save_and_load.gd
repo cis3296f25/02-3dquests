@@ -1,0 +1,38 @@
+extends Node
+
+var save_path = "user://map_data.save"
+var obj_pos_array = []
+var obj_rot_array = []
+var obj_path_array = []
+signal load_obj(pos: Vector3, rot: Vector3, path: String)
+signal save_map_to_client(map_name, pos_arr, rot_arr, path_arr)
+signal load_map_to_client(map_name)
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+
+func store_properties(pos: Vector3, rot: Vector3, path: String):
+	obj_pos_array.append(pos)
+	obj_rot_array.append(rot)
+	obj_path_array.append(path)
+
+# Saves all placed objects
+func save():
+	var save_file = FileAccess.open(save_path, FileAccess.WRITE)
+	
+	save_file.store_var(obj_pos_array)
+	save_file.store_var(obj_rot_array)
+	save_file.store_var(obj_path_array)
+	save_file.close()
+	
+	# Send to client to save to database
+	save_map_to_client.emit("WorldMap")
+
+# Loads objects from previous save 
+func load():  
+	load_map_to_client.emit("WorldMap")
