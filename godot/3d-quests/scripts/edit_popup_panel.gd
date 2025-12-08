@@ -15,7 +15,6 @@ signal new_button_pressed
 @onready var open_menu = $VBoxContainer/OpenMenu
 @onready var place_mode_label = $VBoxContainer/PlaceModeLabel
 @onready var delete_obj_check = $VBoxContainer/DeleteObjMode
-@onready var close_button = $VBoxContainer/Close
 @onready var save_system = get_tree().get_current_scene().get_node("SaveSystem")
 
 var placement_mode_enabled := false
@@ -26,17 +25,15 @@ func _ready() -> void:
 	save_button.disabled = placement_mode_enabled
 	load_button.disabled = placement_mode_enabled
 	open_menu.disabled = placement_mode_enabled
-	close_button.disabled = placement_mode_enabled
 	save_button.pressed.connect(_on_save_pressed)
 	load_button.pressed.connect(_on_load_pressed)
 	new_button.pressed.connect(_on_new_pressed)
 	open_menu.pressed.connect(_on_open_menu_pressed)
 	delete_obj_check.toggled.connect(_on_delete_mode_toggled)
-	close_button.pressed.connect(_on_close_pressed)
 	update_mode_label()
 
 func open():
-	popup_centered() 
+	popup()
 	
 func _on_new_pressed():
 	new_button_pressed.emit()
@@ -78,6 +75,5 @@ func _process(delta: float) -> void:
 		load_button.disabled = placement_mode_enabled
 		save_button.disabled = placement_mode_enabled
 		open_menu.disabled = placement_mode_enabled
-		close_button.disabled = placement_mode_enabled
 		delete_obj_check.disabled = placement_mode_enabled
 		place_mode_changed.emit(placement_mode_enabled)
