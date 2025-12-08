@@ -17,6 +17,7 @@ var socket = WebSocketPeer.new()
 var ws_connected := false
 
 var local_objects: Dictionary[int, Node3D] = {}
+var world_state: Dictionary = {}
 var first_packet_sent := false
 
 var maps: Array[String] = []
@@ -164,7 +165,7 @@ func _save_map(map_name):
 	var data = {
 		"campaignId": campaignId,
 		"map_name": map_name,
-		"map_data": local_objects
+		"map_data": world_state
 	}
 	var json = JSON.stringify(data)
 	
@@ -307,6 +308,7 @@ func handle_data_recieved(data_recieved: Dictionary):
 			remove_objects()
 			for obj_data in data_recieved["objects"]:
 				add_object_to_props_container(obj_data)
+			world_state = data_recieved["world_state"]
 		"load_maps":
 			maps = data_recieved["maps"]
 			current_map_name = data_recieved["current_map_name"]
