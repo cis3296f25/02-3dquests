@@ -10,6 +10,7 @@ interface Params {
 export async function POST(req: Request, context: {params: Params}){
     const {campaign_id, map_name} = context.params;
 
+    try {
     const map = await prisma.campaignMap.findFirst({
         where: {
             campaignId: campaign_id,
@@ -32,4 +33,13 @@ export async function POST(req: Request, context: {params: Params}){
     },
     {status: 200}
     )
+} catch (error: any){
+    return NextResponse.json({
+        success: false,
+        error
+        
+    },
+    {status: 400}
+)
+}
 }
