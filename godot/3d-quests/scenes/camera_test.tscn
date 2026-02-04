@@ -76,14 +76,15 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_16sdf")
 
 [node name="EditMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
-offset_left = -21.0
+offset_left = 1.0
 offset_top = 2.0
-offset_right = 93.0
+offset_right = 70.0
 offset_bottom = 37.0
 text = "Edit"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/EditMenu"]
 oversampling_override = 1.0
+position = Vector2i(0, 40)
 size = Vector2i(114, 268)
 visible = true
 script = ExtResource("6_lahmr")
@@ -116,10 +117,6 @@ text = "Load Map"
 layout_mode = 2
 text = "Assets Menu"
 
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
-
 [node name="DeleteObjMode" type="CheckButton" parent="UILayer/NewUIControl/MenuBar/EditMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 text = "Delete"
@@ -134,6 +131,7 @@ text = "Game Master"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/GmMenu"]
 oversampling_override = 1.0
+position = Vector2i(90, 40)
 visible = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel"]
@@ -145,10 +143,6 @@ offset_bottom = 96.0
 [node name="ChangePermissions" type="Button" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/GmMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
-
 [node name="ControlsMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
 offset_left = 210.0
@@ -159,6 +153,7 @@ text = "Controls"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/ControlsMenu"]
 oversampling_override = 1.0
+position = Vector2i(210, 40)
 visible = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel"]
@@ -170,10 +165,6 @@ offset_bottom = 96.0
 [node name="HowTo" type="Button" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/ControlsMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
-
 [node name="MultiplayerMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
 offset_left = 298.0
@@ -184,6 +175,8 @@ text = "Multiplayer"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu"]
 oversampling_override = 1.0
+position = Vector2i(300, 40)
+visible = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel"]
 offset_left = 4.0
@@ -192,12 +185,7 @@ offset_right = 96.0
 offset_bottom = 96.0
 
 [node name="PlayerList" type="Button" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel/VBoxContainer"]
-visible = false
 layout_mode = 2
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MultiplayerMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
 
 [node name="MeasureMenu" type="MenuButton" parent="UILayer/NewUIControl/MenuBar"]
 layout_mode = 0
@@ -209,6 +197,8 @@ text = "Measure"
 
 [node name="PopupPanel" type="PopupPanel" parent="UILayer/NewUIControl/MenuBar/MeasureMenu"]
 oversampling_override = 1.0
+position = Vector2i(400, 40)
+visible = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel"]
 offset_left = 4.0
@@ -217,21 +207,18 @@ offset_right = 96.0
 offset_bottom = 96.0
 
 [node name="RulerButton" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
-visible = false
 layout_mode = 2
-
-[node name="Close" type="Button" parent="UILayer/NewUIControl/MenuBar/MeasureMenu/PopupPanel/VBoxContainer"]
-layout_mode = 2
-text = "Close"
 
 [node name="NewMapPopup" type="PopupPanel" parent="UILayer/NewUIControl"]
+oversampling_override = 1.0
+size = Vector2i(136, 136)
 script = ExtResource("8_mmtaj")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/NewMapPopup"]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 96.0
-offset_bottom = 96.0
+offset_right = 132.0
+offset_bottom = 132.0
 
 [node name="NewMapNameLabel" type="Label" parent="UILayer/NewUIControl/NewMapPopup/VBoxContainer"]
 layout_mode = 2
@@ -249,13 +236,15 @@ layout_mode = 2
 text = "Cancel"
 
 [node name="LoadMapPopup" type="PopupPanel" parent="UILayer/NewUIControl"]
+oversampling_override = 1.0
+size = Vector2i(108, 178)
 script = ExtResource("9_063i4")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/NewUIControl/LoadMapPopup"]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 96.0
-offset_bottom = 96.0
+offset_right = 104.0
+offset_bottom = 174.0
 
 [node name="MapNameList" type="ItemList" parent="UILayer/NewUIControl/LoadMapPopup/VBoxContainer"]
 clip_contents = false
@@ -272,7 +261,6 @@ layout_mode = 2
 text = "Cancel"
 
 [node name="MainUIControl" type="Control" parent="UILayer"]
-visible = false
 layout_mode = 3
 anchor_top = 0.105000004
 anchor_bottom = 0.105000004
